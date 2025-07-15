@@ -35,10 +35,12 @@ tokio = { version = "1.0", features = ["full"] }
 futures = "0.3"
 sys-info = "0.9"
 
+# Optional dependencies for testing features
+mockall = { version = "0.13", optional = true }  # Mock object framework
+
 [dev-dependencies]
 # Testing framework dependencies
 proptest = "1.4"              # Property-based testing
-mockall = "0.13"              # Mock object framework
 serial_test = "3.1"           # Serial test execution
 criterion = "0.5"             # Benchmarking framework
 insta = "1.40"                # Snapshot testing
