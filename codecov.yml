@@ -1,0 +1,133 @@
+# Codecov Configuration
+# Documentation: https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  # Coverage status and behavior
+  status:
+    # Project coverage status
+    project:
+      default:
+        target: 80%              # Target coverage percentage
+        threshold: 1%            # Allowed coverage drop
+        base: auto               # Base coverage reference
+        if_ci_failed: error      # Fail if CI failed
+        informational: false     # Make status informational only
+        only_pulls: false        # Run on all commits, not just PRs
+      
+      # Additional project status for stricter requirements
+      strict:
+        target: 85%
+        threshold: 0.5%
+        base: auto
+        if_ci_failed: error
+        paths:
+          - "src/git/"           # Core Git operations
+          - "src/security/"      # Security modules
+    
+    # Patch coverage status (new code in PRs)
+    patch:
+      default:
+        target: 90%              # Higher target for new code
+        threshold: 1%
+        base: auto
+        if_ci_failed: error
+        only_pulls: true         # Only for pull requests
+
+  # Coverage precision and rounding
+  precision: 2
+  round: down
+  range: "70...100"
+
+# Comment configuration
+comment:
+  layout: "reach,diff,flags,tree,footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  branches:
+    - main
+    - develop
+
+# GitHub integration
+github_checks:
+  annotations: true
+
+# Ignore paths for coverage calculation
+ignore:
+  - "tests/"                    # Test files
+  - "benches/"                  # Benchmark files
+  - "examples/"                 # Example code
+  - "target/"                   # Build artifacts
+  - "**/*.md"                   # Documentation files
+  - "**/mod.rs"                 # Module declaration files (usually just re-exports)
+  - "src/main.rs"               # Main entry point (minimal logic)
+
+# Flag configuration for different parts of the codebase
+flag_management:
+  default_rules:
+    carryforward: true
+    statuses:
+      - type: project
+        target: 80%
+      - type: patch
+        target: 90%
+
+flags:
+  # Core Git operations
+  git:
+    paths:
+      - src/git/
+    carryforward: true
+    
+  # User interface components  
+  ui:
+    paths:
+      - src/ui/
+    carryforward: true
+    
+  # Security modules
+  security:
+    paths:
+      - src/git/security.rs
+    carryforward: true
+    
+  # Integration tests
+  integration:
+    paths:
+      - tests/
+    carryforward: false
+
+# Pull request behavior
+pull_request_rules:
+  rules:
+    - name: "Require tests for new features"
+      conditions:
+        - changed_files:
+            paths:
+              - "src/**/*.rs"
+      actions:
+        comment:
+          message: "Please ensure new features include comprehensive tests."
+    
+    - name: "Security review required"
+      conditions:
+        - changed_files:
+            paths:
+              - "src/git/security.rs"
+              - "src/git/repository.rs"
+      actions:
+        comment:
+          message: "This PR modifies security-critical code. Additional security review is required."
+
+# Notification settings
+notifications:
+  email: false
+  slack: false
+  gitter: false
+
+# Codecov uploader configuration
+codecov:
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true

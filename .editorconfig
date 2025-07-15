@@ -1,0 +1,74 @@
+# EditorConfig configuration for gitk-rs
+# See https://editorconfig.org
+
+root = true
+
+# Default settings for all files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Rust source files
+[*.rs]
+indent_style = space
+indent_size = 4
+max_line_length = 100
+
+# TOML files (Cargo.toml, etc.)
+[*.toml]
+indent_style = space
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_style = space
+indent_size = 2
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = 80
+
+# Shell scripts
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Makefile
+[Makefile]
+indent_style = tab
+
+# Dockerfile
+[Dockerfile*]
+indent_style = space
+indent_size = 2
+
+# GitHub Actions workflow files
+[.github/workflows/*.yml]
+indent_style = space
+indent_size = 2
+
+# Configuration files
+[*.{conf,config,ini}]
+indent_style = space
+indent_size = 2
+
+# License files
+[LICENSE*]
+insert_final_newline = false
+
+# Git files
+[.gitignore]
+insert_final_newline = true
+
+[.gitattributes]
+insert_final_newline = true

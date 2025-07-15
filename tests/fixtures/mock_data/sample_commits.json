@@ -1,0 +1,56 @@
+[
+  {
+    "id": "a1b2c3d4e5f6789012345678901234567890abcd",
+    "short_id": "a1b2c3d",
+    "author": {
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "when": "2024-01-15T10:30:00Z"
+    },
+    "committer": {
+      "name": "John Doe", 
+      "email": "john.doe@example.com",
+      "when": "2024-01-15T10:30:00Z"
+    },
+    "message": "Add initial project structure\n\nThis commit sets up the basic project structure with\nthe main modules and initial configuration.",
+    "summary": "Add initial project structure",
+    "parent_ids": [],
+    "tree_id": "tree1234567890abcdef1234567890abcdef12345678"
+  },
+  {
+    "id": "b2c3d4e5f6789012345678901234567890abcdef1",
+    "short_id": "b2c3d4e",
+    "author": {
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com", 
+      "when": "2024-01-16T14:22:15Z"
+    },
+    "committer": {
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "when": "2024-01-16T14:22:15Z"
+    },
+    "message": "Implement Git repository discovery\n\nAdds functionality to discover and validate Git repositories.\nIncludes error handling for invalid repositories.",
+    "summary": "Implement Git repository discovery",
+    "parent_ids": ["a1b2c3d4e5f6789012345678901234567890abcd"],
+    "tree_id": "tree2345678901bcdef23456789012cdefab23456789"
+  },
+  {
+    "id": "c3d4e5f6789012345678901234567890abcdef12a",
+    "short_id": "c3d4e5f",
+    "author": {
+      "name": "Bob Wilson",
+      "email": "bob.wilson@example.com",
+      "when": "2024-01-17T09:15:30Z"
+    },
+    "committer": {
+      "name": "Bob Wilson",
+      "email": "bob.wilson@example.com", 
+      "when": "2024-01-17T09:15:30Z"
+    },
+    "message": "Add commit graph visualization\n\nImplements the commit graph rendering with:\n- Branch layout algorithms\n- Interactive zoom and pan\n- Merge commit visualization",
+    "summary": "Add commit graph visualization",
+    "parent_ids": ["b2c3d4e5f6789012345678901234567890abcdef1"],
+    "tree_id": "tree3456789012cdef345678901234def56789abcdef"
+  }
+]

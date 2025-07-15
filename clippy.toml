@@ -1,0 +1,65 @@
+# Clippy configuration for gitk-rs
+# See https://doc.rust-lang.org/stable/clippy/configuration.html
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 15
+
+# Documentation lint configuration
+missing-docs-in-private-items = false
+doc-valid-idents = [
+    "GitRepository", "GitCommit", "GitDiff", "GitRef", "GitkApp",
+    "TDD", "API", "UI", "GUI", "CLI", "HTTP", "HTTPS", "SSH", "URL",
+    "JSON", "YAML", "TOML", "HTML", "CSS", "JavaScript", "TypeScript",
+    "OAuth", "JWT", "REST", "GraphQL", "WebSocket", "TCP", "UDP", "IP",
+    "macOS", "iOS", "GitHub", "GitLab", "VS", "IDE"
+]
+
+# Lint levels
+too-many-arguments-threshold = 8
+type-complexity-threshold = 60
+trivial-copy-size-limit = 64
+
+# Allow certain patterns
+single-char-lifetime-names = true
+avoid-breaking-exported-api = true
+
+# Enum variant name configuration
+enum-variant-name-threshold = 3
+
+# Literal representation
+literal-representation-threshold = 1024
+
+# Import configuration
+max-trait-bounds = 3
+max-fn-params-bools = 3
+
+# Arithmetic configuration
+arithmetic-side-effects-allowed = [
+    "*", 
+    "egui::Vec2", 
+    "egui::Pos2", 
+    "egui::Rect",
+    "f32",
+    "f64",
+    "usize",
+    "u32",
+    "i32"
+]
+
+# Allow certain unsafe operations (if any)
+allow-unsafe-in-tests = true
+
+# Standard library configuration
+standard-macro-braces = [
+    { name = "println", brace = "(" },
+    { name = "eprintln", brace = "(" },
+    { name = "write", brace = "(" },
+    { name = "writeln", brace = "(" },
+    { name = "format", brace = "(" },
+    { name = "assert", brace = "(" },
+    { name = "assert_eq", brace = "(" },
+    { name = "assert_ne", brace = "(" },
+    { name = "debug_assert", brace = "(" },
+    { name = "debug_assert_eq", brace = "(" },
+    { name = "debug_assert_ne", brace = "(" }
+]

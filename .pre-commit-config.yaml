@@ -1,0 +1,117 @@
+# Pre-commit hooks for gitk-rs
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+repos:
+  # General pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-executables-have-shebangs
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Rust-specific hooks
+  - repo: local
+    hooks:
+      # Rust formatting
+      - id: rust-fmt
+        name: Rust Format
+        entry: cargo fmt
+        language: system
+        files: \.rs$
+        pass_filenames: false
+
+      # Rust linting with Clippy
+      - id: rust-clippy
+        name: Rust Clippy
+        entry: cargo clippy
+        language: system
+        args: ["--all-targets", "--all-features", "--", "-D", "warnings"]
+        files: \.rs$
+        pass_filenames: false
+
+      # Rust compilation check
+      - id: rust-check
+        name: Rust Check
+        entry: cargo check
+        language: system
+        args: ["--all-targets", "--all-features"]
+        files: \.rs$
+        pass_filenames: false
+
+      # Rust tests
+      - id: rust-test
+        name: Rust Test
+        entry: cargo test
+        language: system
+        args: ["--all-features"]
+        files: \.rs$
+        pass_filenames: false
+
+      # Security audit
+      - id: rust-audit
+        name: Rust Security Audit
+        entry: cargo audit
+        language: system
+        files: Cargo\.(toml|lock)$
+        pass_filenames: false
+
+      # Documentation check
+      - id: rust-doc
+        name: Rust Documentation
+        entry: cargo doc
+        language: system
+        args: ["--no-deps", "--document-private-items"]
+        files: \.rs$
+        pass_filenames: false
+
+  # Additional security and quality checks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: tests/fixtures/
+
+  # Commit message validation
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [optional-scope]
+
+  # Spell checking for documentation
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args: [--write-changes]
+        exclude: |
+          (?x)^(
+              .*\.lock|
+              tests/fixtures/.*|
+              target/.*
+          )$
+
+# Configuration for specific stages
+default_stages: [pre-commit]
+
+# Exclude certain files from all hooks
+exclude: |
+  (?x)^(
+      target/.*|
+      .git/.*|
+      .*\.lock$
+  )$

@@ -1,0 +1,102 @@
+[package]
+name = "gitk-rs"
+version = "0.1.0"
+edition = "2024"
+description = "A modern Git repository browser written in Rust - successor to gitk"
+authors = ["gitk-rs contributors"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/grok-rs/gitk-rs"
+readme = "README.md"
+keywords = ["git", "gui", "repository", "browser"]
+categories = ["development-tools", "gui"]
+
+[dependencies]
+egui = "0.32"
+eframe = { version = "0.32", features = [
+    "default_fonts",
+    "glow",
+    "persistence",
+    "x11",
+    "wayland",
+] }
+egui_extras = { version = "0.32", features = ["image"] }
+rfd = "0.15"
+git2 = { version = "0.20.2", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1.0"
+thiserror = "2.0.12"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+dirs = "6.0.0"
+regex = "1.10"
+tokio = { version = "1.0", features = ["full"] }
+futures = "0.3"
+sys-info = "0.9"
+
+[dev-dependencies]
+# Testing framework dependencies
+proptest = "1.4"              # Property-based testing
+mockall = "0.13"              # Mock object framework
+serial_test = "3.1"           # Serial test execution
+criterion = "0.5"             # Benchmarking framework
+insta = "1.40"                # Snapshot testing
+tempfile = "3.0"              # Temporary file management
+assert_cmd = "2.0"            # Command-line testing
+predicates = "3.1"            # Test assertions
+pretty_assertions = "1.4"    # Better test output
+test-case = "3.3"             # Parameterized tests
+
+# Testing utilities for async code
+tokio-test = "0.4"            # Async testing utilities
+
+# UI testing (for egui components)
+egui_demo_lib = "0.32"        # egui demo components for reference
+
+# Git testing utilities
+git-testtools = "0.1"         # Git repository testing helpers
+
+[[bin]]
+name = "gitk-rs"
+path = "src/main.rs"
+
+# Benchmark configuration
+[[bench]]
+name = "git_operations"
+harness = false
+
+[[bench]]
+name = "ui_rendering"
+harness = false
+
+[[bench]]
+name = "commit_streaming"
+harness = false
+
+[profile.release]
+opt-level = 2
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.test]
+opt-level = 1
+debug = true
+
+[profile.bench]
+opt-level = 3
+debug = false
+lto = true
+
+# Test configuration
+[lib]
+name = "gitk_rs"
+path = "src/lib.rs"
+doctest = true
+
+# Feature flags for testing
+[features]
+default = []
+testing = ["mockall"]
+integration-tests = []

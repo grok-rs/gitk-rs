@@ -1,0 +1,60 @@
+# Tarpaulin code coverage configuration for gitk-rs
+# See https://github.com/xd009642/tarpaulin
+
+[report]
+# Coverage report formats
+out = ["Html", "Lcov", "Xml"]
+
+[coverage]
+# Include tests
+include-tests = false
+# Run tests
+run-types = ["Tests", "Doctests"]
+# Target directory
+target-dir = "target/tarpaulin"
+# Timeout for tests (in seconds)
+timeout = 120
+# Follow symbolic links
+follow-exec = true
+# Post test delay
+post-test-delay = 0
+
+[output]
+# Output directory for reports
+output-dir = "target/coverage"
+# Report verbosity
+verbose = true
+# No default features
+no-default-features = false
+# All features
+all-features = true
+
+[exclusions]
+# Files to exclude from coverage
+exclude-files = [
+    "tests/*",
+    "benches/*",
+    "examples/*",
+    "src/main.rs",
+    "*/mod.rs",
+]
+
+# Lines to exclude (by comment)
+exclude-lines = [
+    "#\\[derive\\(",
+    "unreachable!",
+    "unimplemented!",
+    "panic!",
+    "todo!",
+    "// UNREACHABLE",
+    "// SAFETY:",
+]
+
+[advanced]
+# Advanced options
+# Force clean rebuild
+force-clean = false
+# Ignore config file
+ignore-config = false
+# Implicit test threads
+implicit-test-threads = true

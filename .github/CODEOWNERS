@@ -1,0 +1,80 @@
+# CODEOWNERS - Defines who owns what code
+# 
+# This file defines the default reviewers for pull requests.
+# When a pull request is created, GitHub will automatically
+# request reviews from the relevant code owners.
+#
+# Order is important; the last matching pattern takes precedence.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners - these users are requested as reviewers for all changes
+* @gitk-rs/maintainers
+
+# Documentation
+*.md @gitk-rs/docs-team
+/docs/ @gitk-rs/docs-team
+CONTRIBUTING.md @gitk-rs/maintainers
+SECURITY.md @gitk-rs/security-team
+README.md @gitk-rs/maintainers
+
+# Configuration files
+Cargo.toml @gitk-rs/maintainers
+Cargo.lock @gitk-rs/maintainers
+rust-toolchain.toml @gitk-rs/maintainers
+rustfmt.toml @gitk-rs/maintainers
+clippy.toml @gitk-rs/maintainers
+deny.toml @gitk-rs/security-team
+
+# CI/CD and automation
+/.github/ @gitk-rs/devops-team
+/.github/workflows/ @gitk-rs/devops-team @gitk-rs/maintainers
+.pre-commit-config.yaml @gitk-rs/devops-team
+codecov.yml @gitk-rs/devops-team
+
+# Core application code
+/src/ @gitk-rs/core-team
+
+# Git operations - critical code requiring careful review
+/src/git/ @gitk-rs/git-experts @gitk-rs/maintainers
+/src/git/repository.rs @gitk-rs/git-experts @gitk-rs/security-team
+/src/git/security.rs @gitk-rs/security-team @gitk-rs/maintainers
+/src/git/operations.rs @gitk-rs/git-experts
+
+# User interface
+/src/ui/ @gitk-rs/ui-team
+
+# Data models and state management
+/src/models/ @gitk-rs/core-team
+/src/state/ @gitk-rs/core-team
+
+# Application entry points
+/src/main.rs @gitk-rs/maintainers
+/src/lib.rs @gitk-rs/maintainers
+/src/app.rs @gitk-rs/core-team @gitk-rs/maintainers
+
+# Test infrastructure
+/tests/ @gitk-rs/core-team
+/benches/ @gitk-rs/performance-team
+
+# Security-related files
+SECURITY.md @gitk-rs/security-team @gitk-rs/maintainers
+/src/git/security.rs @gitk-rs/security-team @gitk-rs/maintainers
+deny.toml @gitk-rs/security-team
+
+# Build and deployment
+Dockerfile @gitk-rs/devops-team
+docker-compose.yml @gitk-rs/devops-team
+/.github/workflows/release.yml @gitk-rs/maintainers @gitk-rs/devops-team
+/.github/workflows/security.yml @gitk-rs/security-team @gitk-rs/devops-team
+
+# License and legal
+LICENSE* @gitk-rs/maintainers
+COPYRIGHT @gitk-rs/maintainers
+
+# Git configuration
+.gitignore @gitk-rs/maintainers
+.gitattributes @gitk-rs/maintainers
+
+# IDE and editor configurations
+.vscode/ @gitk-rs/devops-team
+.idea/ @gitk-rs/devops-team

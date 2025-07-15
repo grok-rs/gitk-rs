@@ -1,0 +1,178 @@
+# Build artifacts
+/target/
+**/*.rs.bk
+*.pdb
+
+# Cargo
+Cargo.lock
+# Remove the line below to version Cargo.lock for libraries
+# This is commented because we're keeping Cargo.lock for reproducible builds
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+.*.tmp
+
+# Development tools
+/.vscode/
+/.idea/
+*.iml
+*.orig
+
+# Testing
+/target/debug/
+/target/release/
+/target/doc/
+/target/coverage/
+/target/tarpaulin/
+coverage.lcov
+tarpaulin-report.html
+*.profraw
+
+# Documentation
+/target/doc/
+docs/book/
+
+# Benchmark results
+/target/criterion/
+criterion-reports/
+
+# Local development
+.env
+.env.local
+local_config.toml
+
+# Security
+.secrets.baseline
+secrets.json
+
+# Cache directories
+.cache/
+.cargo-cache/
+
+# Platform-specific
+## Windows
+*.exe
+*.dll
+*.pdb
+*.ilk
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## Linux
+*~
+
+# Keep the original gitk for reference
+gitk-git/
+
+# Application specific
+config/local/
+logs/
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Node.js (if using any JS tooling)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if using any Python tooling)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Pre-commit
+.pre-commit-cache/
+
+# JetBrains IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Tags
+tags
+TAGS
+.tags
+.TAGS
+
+# Local History for Visual Studio Code
+.history/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
