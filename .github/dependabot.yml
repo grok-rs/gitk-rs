@@ -1,0 +1,111 @@
+# Dependabot configuration for gitk-rs
+# This file configures Dependabot to automatically check for updates to Rust crates
+# and create pull requests when new versions are available.
+
+version: 2
+updates:
+  # Cargo (Rust) dependencies
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      # Check for updates every Monday at 8:00 AM UTC
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    
+    # Limit the number of open pull requests for version updates
+    # This prevents overwhelming the repository with too many PRs
+    open-pull-requests-limit: 5
+    
+    # Automatically rebase pull requests when conflicts occur
+    rebase-strategy: "auto"
+    
+    # Target branch for pull requests
+    target-branch: "main"
+    
+    # Allow updates for both direct and indirect dependencies
+    allow:
+      - dependency-type: "direct"      # Dependencies in [dependencies]
+      - dependency-type: "indirect"    # Transitive dependencies
+    
+    # Customize commit messages for better tracking
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    
+    # Add labels to pull requests for easy identification
+    labels:
+      - "dependencies"
+      - "rust"
+      - "automated"
+    
+    # Assign reviewers (uncomment and modify as needed)
+    # reviewers:
+    #   - "username"
+    # assignees:
+    #   - "username"
+    
+    # Group related dependencies together in single PRs
+    groups:
+      # Group all egui-related crates together
+      egui:
+        patterns:
+          - "egui*"
+          - "eframe*"
+      
+      # Group testing dependencies together
+      testing:
+        patterns:
+          - "proptest"
+          - "serial_test"
+          - "criterion"
+          - "insta"
+          - "tempfile"
+          - "assert_cmd"
+          - "predicates"
+          - "pretty_assertions"
+          - "test-case"
+          - "tokio-test"
+          - "egui_demo_lib"
+          - "git-testtools"
+          - "mockall"
+        dependency-type: "development"
+      
+      # Group async runtime dependencies
+      async:
+        patterns:
+          - "tokio*"
+          - "futures"
+      
+      # Group serialization dependencies
+      serialization:
+        patterns:
+          - "serde*"
+          - "chrono"
+      
+      # Group error handling dependencies
+      error-handling:
+        patterns:
+          - "anyhow"
+          - "thiserror"
+      
+      # Group logging dependencies
+      logging:
+        patterns:
+          - "tracing*"
+    
+    # Ignore specific dependencies or versions if needed
+    ignore:
+      # Example: Ignore patch updates for specific crates
+      # - dependency-name: "some-crate"
+      #   versions: ["1.x"]
+      
+      # Example: Ignore specific version ranges
+      # - dependency-name: "another-crate"
+      #   versions: [">= 2.0.0, < 3.0.0"]
+    
+    # Enable version updates for security vulnerabilities
+    # This is enabled by default but explicitly mentioned for clarity
+    # Security updates will still be created even if version updates are disabled
