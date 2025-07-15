@@ -13,11 +13,11 @@ run-types = ["Tests", "Doctests"]
 # Target directory
 target-dir = "target/tarpaulin"
 # Timeout for tests (in seconds)
-timeout = 120
+timeout = "120s"
 # Follow symbolic links
 follow-exec = true
 # Post test delay
-post-test-delay = 0
+post-test-delay = "0s"
 
 [output]
 # Output directory for reports

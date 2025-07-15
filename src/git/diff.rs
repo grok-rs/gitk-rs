@@ -145,6 +145,7 @@ impl GitRepository {
                             old_lines: hunk.old_lines(),
                             new_start: hunk.new_start(),
                             new_lines: hunk.new_lines(),
+                            header: format!("@@ -{},{} +{},{} @@", hunk.old_start(), hunk.old_lines(), hunk.new_start(), hunk.new_lines()),
                             lines,
                         });
                     }
@@ -222,6 +223,7 @@ impl GitRepository {
                                     old_lines: hunk.old_lines(),
                                     new_start: hunk.new_start(),
                                     new_lines: hunk.new_lines(),
+                                    header: format!("@@ -{},{} +{},{} @@", hunk.old_start(), hunk.old_lines(), hunk.new_start(), hunk.new_lines()),
                                     lines,
                                 });
                             }

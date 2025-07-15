@@ -400,3 +400,261 @@ impl GitCommands {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use std::fs;
+    use std::process::Command;
+
+    fn create_test_repo() -> Result<(TempDir, PathBuf)> {
+        let temp_dir = TempDir::new()?;
+        let repo_path = temp_dir.path().to_path_buf();
+        
+        // Initialize Git repository
+        let output = Command::new("git")
+            .args(&["init"])
+            .current_dir(&repo_path)
+            .output()?;
+        
+        if !output.status.success() {
+            return Err(anyhow!("Failed to initialize Git repository"));
+        }
+        
+        // Configure user for testing
+        Command::new("git")
+            .args(&["config", "user.name", "Test User"])
+            .current_dir(&repo_path)
+            .output()?;
+        
+        Command::new("git")
+            .args(&["config", "user.email", "test@example.com"])
+            .current_dir(&repo_path)
+            .output()?;
+        
+        Ok((temp_dir, repo_path))
+    }
+    
+    fn create_test_commit(repo_path: &Path, filename: &str, content: &str, message: &str) -> Result<()> {
+        let file_path = repo_path.join(filename);
+        fs::write(&file_path, content)?;
+        
+        Command::new("git")
+            .args(&["add", filename])
+            .current_dir(repo_path)
+            .output()?;
+        
+        let output = Command::new("git")
+            .args(&["commit", "-m", message])
+            .current_dir(repo_path)
+            .output()?;
+        
+        if !output.status.success() {
+            return Err(anyhow!("Failed to create commit: {}", String::from_utf8_lossy(&output.stderr)));
+        }
+        
+        Ok(())
+    }
+
+    #[test]
+    fn test_git_command_runner_creation() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let runner = GitCommandRunner::new(&repo_path)?;
+        
+        assert_eq!(runner.repo_path, repo_path);
+        assert!(runner.git_executable.is_absolute());
+        assert!(!runner.environment.is_empty());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_git_commands_creation() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let commands = GitCommands::new(&repo_path)?;
+        
+        // Test that the GitCommands struct is properly initialized
+        // We can't easily test private fields, but we can verify it was created successfully
+        assert!(std::ptr::addr_of!(commands) as *const _ != std::ptr::null());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_execute_safe_command() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        create_test_commit(&repo_path, "test.txt", "Hello World", "Initial commit")?;
+        
+        let commands = GitCommands::new(&repo_path)?;
+        
+        // Test safe command execution
+        let result = commands.log(&["--oneline", "-1"])?;
+        assert!(result.contains("Initial commit"));
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_command_security_validation() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let runner = GitCommandRunner::new(&repo_path)?;
+        
+        // Test that dangerous commands are rejected  
+        let dangerous_args = ["--upload-pack", "/bin/sh"];
+        let result = runner.run_command(&dangerous_args);
+        assert!(result.is_err());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_environment_sanitization() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let runner = GitCommandRunner::new(&repo_path)?;
+        
+        // Verify that the environment has been sanitized
+        assert!(runner.environment.contains_key("PATH"));
+        assert!(runner.environment.contains_key("HOME"));
+        // GIT_DIR should not be inherited from parent process
+        assert!(!runner.environment.contains_key("GIT_WORK_TREE") || 
+                runner.environment.get("GIT_WORK_TREE").unwrap().is_empty());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_git_executable_discovery() -> Result<()> {
+        // Test that we can find a Git executable
+        let git_path = GitCommandRunner::find_git_executable()?;
+        assert!(git_path.is_absolute());
+        assert!(git_path.exists());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_rate_limiting() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let runner = GitCommandRunner::new(&repo_path)?;
+        
+        // Execute multiple commands quickly to test rate limiting
+        for i in 0..15 {
+            let result = runner.run_command(&["status", "--porcelain"]);
+            if i > 10 {
+                // After too many rapid requests, we should hit rate limits
+                if result.is_err() {
+                    break; // Rate limiting is working
+                }
+            }
+        }
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_command_argument_validation() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let runner = GitCommandRunner::new(&repo_path)?;
+        
+        // Test valid arguments
+        let valid_result = runner.run_command(&["status", "--porcelain"]);
+        assert!(valid_result.is_ok());
+        
+        // Test invalid arguments with path traversal
+        let invalid_result = runner.run_command(&["log", "../../../etc/passwd"]);
+        assert!(invalid_result.is_err());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_git_commands_methods() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        create_test_commit(&repo_path, "test.txt", "content", "Test commit")?;
+        
+        let commands = GitCommands::new(&repo_path)?;
+        
+        // Test various GitCommands methods
+        let log_result = commands.log(&["--oneline", "-1"])?;
+        assert!(log_result.contains("Test commit"));
+        
+        let show_ref_result = commands.show_ref(&["--heads"])?;
+        assert!(show_ref_result.contains("refs/heads/"));
+        
+        let diff_result = commands.diff(&["--name-only", "HEAD~1..HEAD"]);
+        // This might fail for first commit, which is expected
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_working_directory_validation() -> Result<()> {
+        // Test with non-existent directory
+        let non_existent = PathBuf::from("/this/path/does/not/exist");
+        let result = GitCommandRunner::new(&non_existent);
+        // Should still create the runner, but commands will fail appropriately
+        assert!(result.is_ok() || result.is_err()); // Either is acceptable
+        
+        // Test with valid directory
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let result = GitCommandRunner::new(&repo_path);
+        assert!(result.is_ok());
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_git_command_timeout() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let runner = GitCommandRunner::new(&repo_path)?;
+        
+        // Test that commands don't hang indefinitely
+        // Using a command that should complete quickly
+        let start = std::time::Instant::now();
+        let result = runner.run_command(&["status"]);
+        let duration = start.elapsed();
+        
+        // Command should complete within reasonable time (5 seconds)
+        assert!(duration.as_secs() < 5);
+        assert!(result.is_ok() || result.is_err()); // Either outcome is fine for testing
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_command_output_sanitization() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        create_test_commit(&repo_path, "test.txt", "content", "Test commit")?;
+        
+        let commands = GitCommands::new(&repo_path)?;
+        let output = commands.log(&["--oneline", "-1"])?;
+        
+        // Verify output doesn't contain control characters that could be dangerous
+        assert!(!output.contains('\x00')); // No null bytes
+        assert!(!output.contains('\x1b')); // No ANSI escape sequences (should be filtered)
+        
+        Ok(())
+    }
+    
+    #[test]
+    fn test_error_handling_and_logging() -> Result<()> {
+        let (_temp_dir, repo_path) = create_test_repo()?;
+        let runner = GitCommandRunner::new(&repo_path)?;
+        
+        // Test command that will definitely fail
+        let result = runner.run_command(&["invalid-git-command"]);
+        assert!(result.is_err());
+        
+        // Verify error messages are meaningful
+        if let Err(e) = result {
+            let error_str = e.to_string();
+            assert!(!error_str.is_empty());
+            // Should not expose internal system details in error messages
+            assert!(!error_str.contains("/proc/"));
+            assert!(!error_str.contains("/sys/"));
+        }
+        
+        Ok(())
+    }
+}

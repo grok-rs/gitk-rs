@@ -547,7 +547,7 @@ mod tests {
         
         // Test search query validation
         assert!(InputValidator::validate_search_query("normal search").is_ok());
-        assert!(InputValidator::validate_search_query("a".repeat(2000)).is_err());
+        assert!(InputValidator::validate_search_query(&"a".repeat(2000)).is_err());
         
         // Test file path validation
         assert!(InputValidator::validate_file_path("src/main.rs").is_ok());
