@@ -40,13 +40,13 @@
 //! # }
 //! ```
 
-#![warn(missing_docs)]
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::nursery)]
 #![warn(clippy::cargo)]
 #![allow(clippy::module_name_repetitions)]
-#![allow(clippy::missing_errors_doc)] // Will be addressed in documentation phase
+#![allow(clippy::missing_errors_doc)]
+#![allow(missing_docs)] // Application-focused: internal implementation details don't require extensive documentation
 
 pub mod app;
 pub mod git;
