@@ -255,14 +255,14 @@ impl DiffViewer {
     pub fn new() -> Self {
         Self {
             show_line_numbers: true,
-            font_size: 12.0,
+            font_size: 14.0,
             view_mode: DiffViewMode::SideBySide,
             word_wrap: false,
             show_whitespace: false,
             context_lines: 3,
             split_ratio: 0.5,
             current_file_index: 0,
-            file_tree_width: 250.0,
+            file_tree_width: 300.0,
             scroll_sync: true,
             file_tree_expanded: HashMap::new(),
             show_file_tree: true,
@@ -434,7 +434,7 @@ impl DiffViewer {
         ui.horizontal(|ui| {
             let available_width = ui.available_width();
             let left_width = available_width * self.split_ratio;
-            let right_width = available_width - left_width - 10.0; // 10px for separator
+            let right_width = available_width - left_width - 5.0; // 5px for separator
             
             // Left side (old/removed)
             ui.allocate_ui_with_layout(
@@ -620,7 +620,7 @@ impl DiffViewer {
         
         let rect = ui.available_rect_before_wrap();
         let (rect, response) = ui.allocate_exact_size(
-            egui::vec2(rect.width(), self.font_size + 4.0),
+            egui::vec2(rect.width(), self.font_size * 1.8),
             egui::Sense::hover()
         );
         
@@ -697,7 +697,7 @@ impl DiffViewer {
         
         let rect = ui.available_rect_before_wrap();
         let (rect, _response) = ui.allocate_exact_size(
-            egui::vec2(rect.width(), self.font_size + 4.0),
+            egui::vec2(rect.width(), self.font_size * 1.8),
             egui::Sense::hover()
         );
         
@@ -734,7 +734,7 @@ impl DiffViewer {
     fn show_empty_line(&self, ui: &mut egui::Ui) {
         let rect = ui.available_rect_before_wrap();
         let (_rect, _response) = ui.allocate_exact_size(
-            egui::vec2(rect.width(), self.font_size + 4.0),
+            egui::vec2(rect.width(), self.font_size * 1.8),
             egui::Sense::hover()
         );
     }
@@ -805,7 +805,7 @@ impl DiffViewer {
         
         let rect = ui.available_rect_before_wrap();
         let (rect, _response) = ui.allocate_exact_size(
-            egui::vec2(rect.width(), self.font_size + 4.0),
+            egui::vec2(rect.width(), self.font_size * 1.8),
             egui::Sense::hover()
         );
         

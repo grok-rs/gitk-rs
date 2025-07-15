@@ -52,7 +52,7 @@ impl CommitGraph {
                     
                     ui.label("Zoom:");
                     let mut zoom = self.graph_renderer.zoom_level;
-                    if ui.add(egui::DragValue::new(&mut zoom).range(0.5..=3.0).speed(0.1)).changed() {
+                    if ui.add(egui::DragValue::new(&mut zoom).range(0.3..=5.0).speed(0.1)).changed() {
                         self.graph_renderer.set_zoom(zoom);
                     }
                     
@@ -199,7 +199,7 @@ impl CommitGraph {
     }
 
     fn show_commit_row(&self, ui: &mut egui::Ui, commit: &GitCommit, is_selected: bool, _config: &AppConfig, state: &AppState) -> egui::Response {
-        let row_height = 60.0;
+        let row_height = 75.0;
         let (rect, response) = ui.allocate_exact_size(
             egui::vec2(ui.available_width(), row_height),
             egui::Sense::click(),
@@ -220,7 +220,7 @@ impl CommitGraph {
             painter.rect_filled(rect, 2.0, bg_color);
 
             // Graph visualization (simplified)
-            let graph_width = 20.0;
+            let graph_width = 30.0;
             let graph_rect = egui::Rect::from_min_size(
                 rect.min,
                 egui::vec2(graph_width, rect.height()),
@@ -228,7 +228,7 @@ impl CommitGraph {
             
             // Draw a simple dot for each commit
             let center = graph_rect.center();
-            painter.circle_filled(center, 4.0, egui::Color32::from_rgb(100, 150, 255));
+            painter.circle_filled(center, 6.0, egui::Color32::from_rgb(100, 150, 255));
 
             // Text area
             let text_rect = egui::Rect::from_min_size(

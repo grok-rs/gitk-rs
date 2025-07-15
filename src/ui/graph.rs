@@ -243,8 +243,8 @@ impl CommitGraphRenderer {
             layout_cache: HashMap::new(),
             branch_colors: Self::create_color_palette(),
             max_branches: 32,
-            row_height: 24.0,
-            column_width: 16.0,
+            row_height: 40.0,
+            column_width: 24.0,
             zoom_level: 1.0,
             pan_offset: egui::Vec2::ZERO,
             highlighted_path: None,
@@ -334,11 +334,15 @@ impl CommitGraphRenderer {
         let lane_assignments = self.assign_commit_lanes(commits, &parent_map, &child_map);
         
         // Step 3: Calculate positions for each commit
+        // Add margin for better visibility
+        let graph_margin_x = 20.0;
+        let graph_margin_y = 10.0;
+        
         for (row, commit) in commits.iter().enumerate() {
             let lane = lane_assignments.get(&commit.id).unwrap_or(&0);
             let pos = egui::Pos2 {
-                x: (*lane as f32) * self.column_width * self.zoom_level + self.pan_offset.x,
-                y: (row as f32) * self.row_height * self.zoom_level + self.pan_offset.y,
+                x: graph_margin_x + (*lane as f32) * self.column_width * self.zoom_level + self.pan_offset.x,
+                y: graph_margin_y + (row as f32) * self.row_height * self.zoom_level + self.pan_offset.y,
             };
             
             let color = self.branch_colors[*lane % self.branch_colors.len()];
@@ -359,7 +363,7 @@ impl CommitGraphRenderer {
             let commit_pos = CommitPosition {
                 pos,
                 lane: *lane,
-                radius: 4.0 * self.zoom_level,
+                radius: 6.0 * self.zoom_level,
                 color,
                 parent_lines,
                 child_lines,
@@ -373,8 +377,9 @@ impl CommitGraphRenderer {
         layout.merge_lines = self.create_merge_lines(commits, &layout.commit_positions);
         
         // Step 5: Calculate total dimensions
-        layout.total_width = (lane_assignments.values().max().unwrap_or(&0) + 1) as f32 * self.column_width * self.zoom_level;
-        layout.total_height = commits.len() as f32 * self.row_height * self.zoom_level;
+        let max_lane = lane_assignments.values().max().unwrap_or(&0);
+        layout.total_width = 40.0 + (*max_lane + 1) as f32 * self.column_width * self.zoom_level;
+        layout.total_height = 20.0 + commits.len() as f32 * self.row_height * self.zoom_level;
         
         // Cache the layout
         self.layout_cache.insert(cache_key, layout.clone());
@@ -418,25 +423,34 @@ impl CommitGraphRenderer {
             let assigned_lane = if parents.is_empty() {
                 // Root commit - assign to next free lane
                 let lane = self.find_free_lane(&active_lanes);
+                if lane >= active_lanes.len() {
+                    active_lanes.resize(lane + 1, None);
+                }
                 active_lanes[lane] = Some(commit_id.clone());
                 lane
             } else if parents.len() == 1 {
                 // Single parent - try to continue on parent's lane
                 let parent_id = &parents[0];
                 if let Some(parent_lane) = lane_assignments.get(parent_id) {
-                    // Check if parent's lane is available
-                    if active_lanes[*parent_lane].as_ref() == Some(parent_id) {
+                    // Check if parent's lane is available and within bounds
+                    if *parent_lane < active_lanes.len() && active_lanes[*parent_lane].as_ref() == Some(parent_id) {
                         active_lanes[*parent_lane] = Some(commit_id.clone());
                         *parent_lane
                     } else {
                         // Parent's lane is occupied, find new lane
                         let lane = self.find_free_lane(&active_lanes);
+                        if lane >= active_lanes.len() {
+                            active_lanes.resize(lane + 1, None);
+                        }
                         active_lanes[lane] = Some(commit_id.clone());
                         lane
                     }
                 } else {
                     // Parent not found, assign new lane
                     let lane = self.find_free_lane(&active_lanes);
+                    if lane >= active_lanes.len() {
+                        active_lanes.resize(lane + 1, None);
+                    }
                     active_lanes[lane] = Some(commit_id.clone());
                     lane
                 }
@@ -595,7 +609,7 @@ impl CommitGraphRenderer {
             end,
             control_points: Vec::new(),
             color,
-            thickness: 2.0 * self.zoom_level,
+            thickness: 3.0 * self.zoom_level.max(0.8),
             style: LineStyle::Solid,
         }
     }
@@ -612,7 +626,7 @@ impl CommitGraphRenderer {
             end,
             control_points: vec![control1, control2],
             color,
-            thickness: 2.0 * self.zoom_level,
+            thickness: 3.0 * self.zoom_level.max(0.8),
             style: LineStyle::Solid,
         }
     }
@@ -1209,7 +1223,7 @@ impl CommitGraphRenderer {
     
     /// Set zoom level
     pub fn set_zoom(&mut self, zoom: f32) {
-        self.zoom_level = zoom.clamp(0.5, 3.0);
+        self.zoom_level = zoom.clamp(0.3, 5.0);
         self.layout_cache.clear(); // Invalidate cache
     }
     

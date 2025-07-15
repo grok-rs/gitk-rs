@@ -60,16 +60,16 @@ impl MainWindow {
             search_panel: SearchPanel::new(),
             references_panel: ReferencesPanel::new(),
             views_panel: ViewsPanel::new(),
-            left_panel_width: 400.0,
-            right_panel_width: 400.0,
+            left_panel_width: 500.0,
+            right_panel_width: 350.0,
             show_references: true,
             show_views: true,
             // Layout management
             layout_mode: LayoutMode::ThreePaneClassic,
             split_ratios: SplitRatios {
-                left_panel_ratio: 0.3,
-                right_panel_ratio: 0.3,
-                vertical_split_ratio: 0.5,
+                left_panel_ratio: 0.35,
+                right_panel_ratio: 0.25,
+                vertical_split_ratio: 0.6,
             },
             panel_visibility: PanelVisibility {
                 commit_graph: true,
