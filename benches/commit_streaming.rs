@@ -4,7 +4,7 @@
 //! for performance with large repositories.
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use gitk_rs::git::{GitRepository, CommitStream};
+use gitk_rs::git::{CommitStream, GitRepository};
 use std::path::PathBuf;
 use std::process::Command;
 use tempfile::TempDir;
@@ -35,9 +35,9 @@ fn create_streaming_test_repo(commit_count: usize) -> anyhow::Result<(TempDir, P
     for i in 0..commit_count {
         let content = "x".repeat((i % 1000) + 100); // Variable content size
         let filename = format!("file_{}.txt", i);
-        
+
         std::fs::write(repo_path.join(&filename), content)?;
-        
+
         Command::new("git")
             .args(["add", &filename])
             .current_dir(&repo_path)
@@ -67,10 +67,10 @@ fn bench_stream_initialization(c: &mut Criterion) {
 /// Benchmark commit streaming with different batch sizes
 fn bench_commit_streaming_batches(c: &mut Criterion) {
     let mut group = c.benchmark_group("commit_streaming_batches");
-    
+
     let (_temp_dir, repo_path) = create_streaming_test_repo(1000).unwrap();
     let repo = GitRepository::discover(&repo_path).unwrap();
-    
+
     for batch_size in [10, 25, 50, 100].iter() {
         group.throughput(Throughput::Elements(*batch_size as u64));
         group.bench_with_input(
@@ -84,30 +84,30 @@ fn bench_commit_streaming_batches(c: &mut Criterion) {
             },
         );
     }
-    
+
     group.finish();
 }
 
 /// Benchmark streaming vs traditional loading
 fn bench_streaming_vs_traditional(c: &mut Criterion) {
     let mut group = c.benchmark_group("streaming_vs_traditional");
-    
+
     let (_temp_dir, repo_path) = create_streaming_test_repo(500).unwrap();
     let repo = GitRepository::discover(&repo_path).unwrap();
-    
+
     // Traditional loading
     group.bench_function("traditional_loading", |b| {
         b.iter(|| {
             let _commits = repo.get_commits(black_box(Some(100))).unwrap();
         });
     });
-    
+
     // Streaming loading
     group.bench_function("streaming_loading", |b| {
         b.iter(|| {
             let mut stream = CommitStream::new(&repo, 100, 25);
             let mut total_commits = 0;
-            
+
             while !stream.is_complete() {
                 if let Ok(commits) = stream.next_batch() {
                     total_commits += commits.len();
@@ -120,7 +120,7 @@ fn bench_streaming_vs_traditional(c: &mut Criterion) {
             }
         });
     });
-    
+
     group.finish();
 }
 
@@ -133,7 +133,7 @@ fn bench_streaming_memory_efficiency(c: &mut Criterion) {
         b.iter(|| {
             let mut stream = CommitStream::new(&repo, 1000, 20);
             let mut processed = 0;
-            
+
             // Process commits in small batches to test memory efficiency
             while !stream.is_complete() && processed < 200 {
                 if let Ok(commits) = stream.next_batch() {

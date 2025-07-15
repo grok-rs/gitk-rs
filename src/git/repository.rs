@@ -1,8 +1,8 @@
-use std::path::Path;
+use crate::git::GitCommands;
+use crate::models::{GitCommit, RepositoryInfo};
 use anyhow::{anyhow, Result};
 use git2::{Repository, RepositoryOpenFlags};
-use crate::models::{GitCommit, RepositoryInfo};
-use crate::git::GitCommands;
+use std::path::Path;
 
 pub struct GitRepository {
     repo: Repository,
@@ -30,7 +30,11 @@ impl GitRepository {
         let repo_path = repo.workdir().unwrap_or_else(|| repo.path()).to_path_buf();
         let commands = GitCommands::new(&repo_path)?;
 
-        Ok(GitRepository { repo, info, commands })
+        Ok(GitRepository {
+            repo,
+            info,
+            commands,
+        })
     }
 
     pub fn discover<P: AsRef<Path>>(path: P) -> Result<Self> {
@@ -40,12 +44,16 @@ impl GitRepository {
             git2::RepositoryOpenFlags::empty(),
             &[] as &[&std::ffi::OsStr],
         )?;
-        
+
         let info = RepositoryInfo::from_repo(&repo)?;
         let repo_path = repo.workdir().unwrap_or_else(|| repo.path()).to_path_buf();
         let commands = GitCommands::new(&repo_path)?;
 
-        Ok(GitRepository { repo, info, commands })
+        Ok(GitRepository {
+            repo,
+            info,
+            commands,
+        })
     }
 
     pub fn info(&self) -> &RepositoryInfo {
@@ -82,10 +90,10 @@ impl GitRepository {
     pub fn get_commits_in_range(&self, from: &str, to: &str) -> Result<Vec<GitCommit>> {
         let mut revwalk = self.repo.revwalk()?;
         revwalk.set_sorting(git2::Sort::TIME)?;
-        
+
         let to_oid = git2::Oid::from_str(to)?;
         let from_oid = git2::Oid::from_str(from)?;
-        
+
         revwalk.push(to_oid)?;
         revwalk.hide(from_oid)?;
 
@@ -103,10 +111,10 @@ impl GitRepository {
         let oid = git2::Oid::from_str(commit_id)?;
         let commit = self.repo.find_commit(oid)?;
         let tree = commit.tree()?;
-        
+
         let entry = tree.get_path(Path::new(path))?;
         let object = entry.to_object(&self.repo)?;
-        
+
         if let Some(blob) = object.as_blob() {
             let content = blob.content();
             Ok(String::from_utf8_lossy(content).into_owned())
@@ -124,14 +132,14 @@ impl GitRepository {
     pub fn get_branches(&self) -> Result<Vec<String>> {
         let mut branches = Vec::new();
         let branch_iter = self.repo.branches(Some(git2::BranchType::Local))?;
-        
+
         for branch in branch_iter {
             let (branch, _) = branch?;
             if let Some(name) = branch.name()? {
                 branches.push(name.to_string());
             }
         }
-        
+
         Ok(branches)
     }
 
@@ -163,10 +171,11 @@ impl GitRepository {
             let commit = self.repo.find_commit(oid)?;
             let git_commit = GitCommit::new(&commit)?;
 
-            if git_commit.message.to_lowercase().contains(&query) ||
-               git_commit.author.name.to_lowercase().contains(&query) ||
-               git_commit.author.email.to_lowercase().contains(&query) ||
-               git_commit.id.contains(&query) {
+            if git_commit.message.to_lowercase().contains(&query)
+                || git_commit.author.name.to_lowercase().contains(&query)
+                || git_commit.author.email.to_lowercase().contains(&query)
+                || git_commit.id.contains(&query)
+            {
                 commits.push(git_commit);
             }
         }
@@ -234,10 +243,11 @@ impl GitRepository {
         let output = self.commands.for_each_ref(&[
             "--format=%(refname:short)",
             "refs/heads/",
-            "refs/remotes/"
+            "refs/remotes/",
         ])?;
-        
-        Ok(output.lines()
+
+        Ok(output
+            .lines()
             .filter(|line| !line.is_empty())
             .map(|line| line.to_string())
             .collect())
@@ -245,12 +255,12 @@ impl GitRepository {
 
     /// Get all tags
     pub fn get_all_tags_safe(&self) -> Result<Vec<String>> {
-        let output = self.commands.for_each_ref(&[
-            "--format=%(refname:short)",
-            "refs/tags/"
-        ])?;
-        
-        Ok(output.lines()
+        let output = self
+            .commands
+            .for_each_ref(&["--format=%(refname:short)", "refs/tags/"])?;
+
+        Ok(output
+            .lines()
             .filter(|line| !line.is_empty())
             .map(|line| line.to_string())
             .collect())
@@ -261,7 +271,7 @@ impl GitRepository {
         let has_worktree = self.commands.has_work_tree()?;
         let worktree_path = self.commands.work_tree()?;
         let worktree_str = worktree_path.map(|p| p.to_string_lossy().to_string());
-        
+
         Ok((has_worktree, worktree_str))
     }
 }
@@ -269,10 +279,10 @@ impl GitRepository {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
     use std::process::Command;
     use tempfile::TempDir;
     use test_case::test_case;
-    use pretty_assertions::assert_eq;
 
     /// Create a temporary Git repository for testing
     fn create_test_repo() -> anyhow::Result<(TempDir, std::path::PathBuf)> {
@@ -300,7 +310,12 @@ mod tests {
     }
 
     /// Create a test commit in the repository
-    fn create_test_commit(repo_path: &Path, filename: &str, content: &str, message: &str) -> anyhow::Result<()> {
+    fn create_test_commit(
+        repo_path: &Path,
+        filename: &str,
+        content: &str,
+        message: &str,
+    ) -> anyhow::Result<()> {
         let file_path = repo_path.join(filename);
         std::fs::write(&file_path, content)?;
 
@@ -323,8 +338,15 @@ mod tests {
         create_test_commit(&repo_path, "test.txt", "Hello, World!", "Initial commit")?;
 
         let repository = GitRepository::discover(&repo_path)?;
-        assert!(repository.repo.workdir().unwrap_or(repository.repo.path()).exists());
-        assert_eq!(repository.info().name, repo_path.file_name().unwrap().to_string_lossy());
+        assert!(repository
+            .repo
+            .workdir()
+            .unwrap_or(repository.repo.path())
+            .exists());
+        assert_eq!(
+            repository.info().name,
+            repo_path.file_name().unwrap().to_string_lossy()
+        );
 
         Ok(())
     }
@@ -363,10 +385,15 @@ mod tests {
     #[test]
     fn test_get_commits_with_limit() -> anyhow::Result<()> {
         let (_temp_dir, repo_path) = create_test_repo()?;
-        
+
         // Create 5 commits
         for i in 1..=5 {
-            create_test_commit(&repo_path, &format!("file{}.txt", i), &format!("Content {}", i), &format!("Commit {}", i))?;
+            create_test_commit(
+                &repo_path,
+                &format!("file{}.txt", i),
+                &format!("Content {}", i),
+                &format!("Commit {}", i),
+            )?;
         }
 
         let repository = GitRepository::discover(&repo_path)?;
@@ -382,7 +409,12 @@ mod tests {
     #[test]
     fn test_get_branches() -> anyhow::Result<()> {
         let (_temp_dir, repo_path) = create_test_repo()?;
-        create_test_commit(&repo_path, "initial.txt", "Initial content", "Initial commit")?;
+        create_test_commit(
+            &repo_path,
+            "initial.txt",
+            "Initial content",
+            "Initial commit",
+        )?;
 
         // Create a feature branch
         Command::new("git")
@@ -390,7 +422,12 @@ mod tests {
             .current_dir(&repo_path)
             .output()?;
 
-        create_test_commit(&repo_path, "feature.txt", "Feature content", "Feature commit")?;
+        create_test_commit(
+            &repo_path,
+            "feature.txt",
+            "Feature content",
+            "Feature commit",
+        )?;
 
         let repository = GitRepository::discover(&repo_path)?;
         let branches = repository.get_branches()?;
@@ -423,7 +460,10 @@ mod tests {
     #[test_case("", "Empty string should be invalid")]
     #[test_case("invalid-sha", "Invalid SHA format should be invalid")]
     #[test_case("123", "Too short SHA should be invalid")]
-    fn test_get_commit_with_invalid_sha(invalid_sha: &str, _description: &str) -> anyhow::Result<()> {
+    fn test_get_commit_with_invalid_sha(
+        invalid_sha: &str,
+        _description: &str,
+    ) -> anyhow::Result<()> {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "Test content", "Test commit")?;
 
@@ -451,7 +491,7 @@ mod tests {
         Ok(())
     }
 
-    #[test] 
+    #[test]
     fn test_repository_info() -> anyhow::Result<()> {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "info.txt", "Info content", "Info commit")?;
@@ -478,7 +518,7 @@ mod tests {
         Ok(())
     }
 
-    #[test] 
+    #[test]
     fn test_has_uncommitted_changes_dirty_repo() -> anyhow::Result<()> {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "dirty.txt", "Initial content", "Initial commit")?;
@@ -553,7 +593,7 @@ mod tests {
 
         // These tests would use mocks for more isolated unit testing
         // They're conditional on the "testing" feature flag
-        
+
         #[test]
         fn test_mock_repository_operations() {
             // Example of how mock tests would be structured
@@ -572,22 +612,22 @@ mod tests {
             fn test_commit_message_roundtrip(message in "\\PC{1,100}") {
                 // Test that commit messages can be stored and retrieved correctly
                 prop_assume!(!message.trim().is_empty());
-                
+
                 let (_temp_dir, repo_path) = create_test_repo().unwrap();
                 create_test_commit(&repo_path, "prop.txt", "Property content", &message).unwrap();
-                
+
                 let repository = GitRepository::discover(&repo_path).unwrap();
                 let commits = repository.get_commits(Some(1)).unwrap();
-                
+
                 prop_assert_eq!(&commits[0].summary, &message);
             }
-            
+
             #[test]
             fn test_file_content_roundtrip(content in "[\\x20-\\x7E]{1,100}") {
                 // Test that file content can be stored and retrieved correctly using ASCII printable chars
                 let (_temp_dir, repo_path) = create_test_repo().unwrap();
                 create_test_commit(&repo_path, "content.txt", &content, "Content test").unwrap();
-                
+
                 let repository = GitRepository::discover(&repo_path).unwrap();
                 if let Ok(commits) = repository.get_commits(Some(1)) {
                     if let Some(first_commit) = commits.first() {

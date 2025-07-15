@@ -1,6 +1,8 @@
-use crate::models::{GitCommit, RepositoryInfo, GitDiff};
-use crate::git::{GitRepository, CommitStream, RefManager, ViewManager, InputSanitizer, 
-               InputValidator, ErrorRecovery, ErrorReporter, GitError};
+use crate::git::{
+    CommitStream, ErrorRecovery, ErrorReporter, GitError, GitRepository, InputSanitizer,
+    InputValidator, RefManager, ViewManager,
+};
+use crate::models::{GitCommit, GitDiff, RepositoryInfo};
 
 #[derive(Debug)]
 pub struct AppState {
@@ -94,7 +96,7 @@ impl AppState {
             self.error_message = Some(ErrorRecovery::user_friendly_message(&e));
             return;
         }
-        
+
         // Sanitize commit ID for security
         match InputSanitizer::sanitize_commit_id(&commit_id) {
             Ok(sanitized_id) => {
@@ -113,18 +115,16 @@ impl AppState {
         if let Some(ref repo) = self.repository {
             // Sanitize commit ID again for safety
             match InputSanitizer::sanitize_commit_id(commit_id) {
-                Ok(sanitized_id) => {
-                    match repo.get_commit_diff_enhanced(&sanitized_id) {
-                        Ok(diffs) => {
-                            if let Some(first_diff) = diffs.into_iter().next() {
-                                self.current_diff = Some(first_diff);
-                            }
-                        }
-                        Err(e) => {
-                            self.error_message = Some(format!("Failed to load diff: {}", e));
+                Ok(sanitized_id) => match repo.get_commit_diff_enhanced(&sanitized_id) {
+                    Ok(diffs) => {
+                        if let Some(first_diff) = diffs.into_iter().next() {
+                            self.current_diff = Some(first_diff);
                         }
                     }
-                }
+                    Err(e) => {
+                        self.error_message = Some(format!("Failed to load diff: {}", e));
+                    }
+                },
                 Err(e) => {
                     self.error_message = Some(format!("Invalid commit ID: {}", e));
                 }
@@ -140,7 +140,7 @@ impl AppState {
                 self.error_message = Some(ErrorRecovery::user_friendly_message(&e));
                 return;
             }
-            
+
             // Sanitize search query for security
             match InputSanitizer::sanitize_search_query(query) {
                 Ok(sanitized_query) => {
@@ -157,7 +157,8 @@ impl AppState {
                             Err(e) => {
                                 let git_error = GitError::command_failed("search", e.to_string());
                                 ErrorReporter::log_error(&git_error, "commit search");
-                                self.error_message = Some(ErrorRecovery::user_friendly_message(&git_error));
+                                self.error_message =
+                                    Some(ErrorRecovery::user_friendly_message(&git_error));
                             }
                         }
                         self.loading = false;
@@ -197,7 +198,7 @@ impl AppState {
             self.loading = true;
             self.commits.clear();
             self.stream_complete = false;
-            
+
             match repo.get_commits_streaming(Some(self.commit_limit)) {
                 Ok(stream) => {
                     self.commit_stream = Some(stream);
@@ -213,8 +214,6 @@ impl AppState {
     pub fn poll_commit_stream(&mut self) -> bool {
         if let Some(ref mut stream) = self.commit_stream {
             let mut progress_made = false;
-            tracing::debug!("Polling commit stream, current commits: {}", self.commits.len());
-            
             // Poll for new commits (non-blocking)
             while let Some(commit_result) = stream.try_next() {
                 match commit_result {
@@ -231,7 +230,7 @@ impl AppState {
                     }
                 }
             }
-            
+
             // Check if stream is complete
             if stream.is_complete() {
                 tracing::debug!("Commit stream completed, total commits loaded: {}", self.commits.len());
@@ -239,11 +238,7 @@ impl AppState {
                 self.loading = false;
                 self.commit_stream = None;
             }
-            
-            if progress_made {
-                tracing::debug!("Progress made in poll, total commits now: {}", self.commits.len());
-            }
-            
+
             progress_made
         } else {
             false
@@ -270,29 +265,31 @@ impl AppState {
     }
 
     pub fn get_branches(&self) -> Vec<String> {
-        self.ref_manager.as_ref()
+        self.ref_manager
+            .as_ref()
             .map(|rm| {
                 let mut branches = Vec::new();
-                
+
                 // Add local branches
                 for branch in rm.get_local_branches() {
                     branches.push(branch.name.clone());
                 }
-                
+
                 // Add remote branches if enabled
                 if self.show_remote_branches {
                     for branch in rm.get_remote_branches() {
                         branches.push(branch.name.clone());
                     }
                 }
-                
+
                 branches
             })
             .unwrap_or_default()
     }
 
     pub fn get_tags(&self) -> Vec<String> {
-        self.ref_manager.as_ref()
+        self.ref_manager
+            .as_ref()
             .map(|rm| rm.get_tags().iter().map(|tag| tag.name.clone()).collect())
             .unwrap_or_default()
     }
@@ -302,7 +299,8 @@ impl AppState {
     }
 
     pub fn is_detached_head(&self) -> bool {
-        self.ref_manager.as_ref()
+        self.ref_manager
+            .as_ref()
             .map(|rm| rm.is_detached_head())
             .unwrap_or(false)
     }
@@ -320,7 +318,8 @@ impl AppState {
                             // Start streaming commits from this branch
                             self.start_streaming_commits();
                         } else {
-                            self.error_message = Some(format!("Branch '{}' not found", sanitized_name));
+                            self.error_message =
+                                Some(format!("Branch '{}' not found", sanitized_name));
                         }
                     }
                 }
@@ -332,7 +331,8 @@ impl AppState {
     }
 
     pub fn get_refs_for_commit(&self, commit_sha: &str) -> Vec<String> {
-        self.ref_manager.as_ref()
+        self.ref_manager
+            .as_ref()
             .map(|rm| {
                 rm.get_refs_for_commit(commit_sha)
                     .into_iter()
@@ -349,12 +349,12 @@ impl AppState {
     pub fn initialize_views(&mut self) {
         if let Some(ref repo) = self.repository {
             let mut view_manager = repo.create_view_manager();
-            
+
             // Initialize the default view with current repository commits
             if let Err(e) = view_manager.update_current_view(repo) {
                 self.error_message = Some(format!("Failed to initialize views: {}", e));
             }
-            
+
             self.view_manager = Some(view_manager);
         }
     }
@@ -389,28 +389,28 @@ impl AppState {
             }
         }
     }
-    
+
     // Navigation methods for keyboard shortcuts
     pub fn navigate_commits(&mut self, delta: i32) {
         let commits_len = self.get_filtered_commits().len();
         if commits_len == 0 {
             return;
         }
-        
+
         let current_index = self.selected_commit_index.unwrap_or(0);
         let new_index = if delta < 0 {
             current_index.saturating_sub((-delta) as usize)
         } else {
             (current_index + delta as usize).min(commits_len - 1)
         };
-        
+
         if new_index < commits_len {
             let commit_id = self.get_filtered_commits()[new_index].id.clone();
             self.selected_commit_index = Some(new_index);
             self.select_commit(commit_id);
         }
     }
-    
+
     pub fn navigate_to_first_commit(&mut self) {
         let commits = self.get_filtered_commits();
         if !commits.is_empty() {
@@ -419,7 +419,7 @@ impl AppState {
             self.select_commit(commit_id);
         }
     }
-    
+
     pub fn navigate_to_last_commit(&mut self) {
         let commits = self.get_filtered_commits();
         if !commits.is_empty() {

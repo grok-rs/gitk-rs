@@ -34,7 +34,7 @@ pub enum Theme {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BranchColorSettings {
     pub use_branch_colors: bool,
-    pub main_branch_color: String,        // hex color
+    pub main_branch_color: String, // hex color
     pub feature_branch_color: String,
     pub release_branch_color: String,
     pub hotfix_branch_color: String,
@@ -43,9 +43,9 @@ pub struct BranchColorSettings {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BranchPattern {
-    pub pattern: String,    // regex pattern
-    pub color: String,      // hex color
-    pub name: String,       // display name
+    pub pattern: String, // regex pattern
+    pub color: String,   // hex color
+    pub name: String,    // display name
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,12 +54,12 @@ pub struct DiffSettings {
     pub ignore_whitespace: bool,
     pub show_word_diff: bool,
     pub syntax_highlighting: bool,
-    pub max_file_size_kb: u64,  // Skip diffing files larger than this
+    pub max_file_size_kb: u64, // Skip diffing files larger than this
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayoutSettings {
-    pub default_layout_mode: String,  // "three_pane", "two_pane_h", "two_pane_v", "single"
+    pub default_layout_mode: String, // "three_pane", "two_pane_h", "two_pane_v", "single"
     pub left_panel_width_ratio: f32,
     pub right_panel_width_ratio: f32,
     pub remember_panel_states: bool,
@@ -118,7 +118,7 @@ impl AppConfig {
         if let Some(config_dir) = dirs::config_dir() {
             let app_config_dir = config_dir.join("gitk-rust");
             std::fs::create_dir_all(&app_config_dir)?;
-            
+
             let config_path = app_config_dir.join("config.json");
             let content = serde_json::to_string_pretty(self)?;
             std::fs::write(&config_path, content)?;
@@ -129,10 +129,10 @@ impl AppConfig {
     pub fn add_recent_repository(&mut self, path: PathBuf) {
         // Remove if already exists
         self.recent_repositories.retain(|p| p != &path);
-        
+
         // Add to front
         self.recent_repositories.insert(0, path);
-        
+
         // Limit to max_recent_repos
         if self.recent_repositories.len() > self.max_recent_repos {
             self.recent_repositories.truncate(self.max_recent_repos);
@@ -148,10 +148,10 @@ impl Default for BranchColorSettings {
     fn default() -> Self {
         Self {
             use_branch_colors: true,
-            main_branch_color: "#2E7D32".to_string(),      // Green
-            feature_branch_color: "#1976D2".to_string(),   // Blue
-            release_branch_color: "#F57C00".to_string(),   // Orange
-            hotfix_branch_color: "#D32F2F".to_string(),    // Red
+            main_branch_color: "#2E7D32".to_string(), // Green
+            feature_branch_color: "#1976D2".to_string(), // Blue
+            release_branch_color: "#F57C00".to_string(), // Orange
+            hotfix_branch_color: "#D32F2F".to_string(), // Red
             custom_patterns: vec![
                 BranchPattern {
                     pattern: "feature/.*".to_string(),

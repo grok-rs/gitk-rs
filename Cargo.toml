@@ -1,7 +1,7 @@
 [package]
 name = "gitk-rs"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 description = "A modern Git repository browser written in Rust - successor to gitk"
 authors = ["gitk-rs contributors"]
 license = "MIT OR Apache-2.0"
