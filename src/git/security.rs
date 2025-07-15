@@ -420,6 +420,7 @@ impl RateLimiter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::git::InputValidator;
     
     #[test]
     fn test_security_validator() {
