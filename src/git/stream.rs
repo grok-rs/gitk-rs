@@ -53,6 +53,8 @@ impl CommitStream {
             return Ok(());
         }
         
+        tracing::debug!("Loading batch of commits, loaded so far: {}", self.loaded);
+        
         // Create a fresh revwalk each time to avoid lifetime issues
         let mut revwalk = self.repo.repo().revwalk()?;
         revwalk.set_sorting(git2::Sort::TIME)?;
@@ -81,6 +83,7 @@ impl CommitStream {
                         Ok(commit) => {
                             match GitCommit::new(&commit) {
                                 Ok(git_commit) => {
+                                    tracing::debug!("Loaded commit: {} - {}", git_commit.id, git_commit.message.lines().next().unwrap_or(""));
                                     self.commits.push_back(git_commit);
                                     batch_loaded += 1;
                                     self.loaded += 1;
@@ -109,6 +112,9 @@ impl CommitStream {
         if batch_loaded < self.batch_size || self.loaded >= self.limit {
             self.is_complete = true;
         }
+        
+        tracing::debug!("Batch complete: loaded {} commits in this batch, total loaded: {}, is_complete: {}", 
+                       batch_loaded, self.loaded, self.is_complete);
         
         Ok(())
     }

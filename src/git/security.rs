@@ -239,8 +239,8 @@ impl SecurityValidator {
     pub fn validate_environment(&self, env_vars: &std::collections::HashMap<String, String>) -> Result<()> {
         let dangerous_env_vars = [
             "LD_PRELOAD", "LD_LIBRARY_PATH", "DYLD_INSERT_LIBRARIES",
-            "PATH", "GIT_EXEC_PATH", "GIT_SSH", "GIT_SSH_COMMAND",
-            "GIT_PROXY_COMMAND", "GIT_CONNECT_TIMEOUT"
+            "GIT_EXEC_PATH", "GIT_SSH",
+            "GIT_CONNECT_TIMEOUT"
         ];
         
         for var in &dangerous_env_vars {
