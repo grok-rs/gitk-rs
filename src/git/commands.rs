@@ -1,6 +1,6 @@
 use crate::git::platform_security::PlatformSecurity;
 use crate::git::security::{RateLimiter, SecurityValidator};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use std::env;
 use std::path::{Path, PathBuf};

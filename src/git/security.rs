@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use regex::Regex;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -462,11 +462,9 @@ mod tests {
 
         // Test dangerous arguments
         assert!(validator.validate_arguments(&["--upload-pack"]).is_err());
-        assert!(
-            validator
-                .validate_arguments(&["../../../etc/passwd"])
-                .is_err()
-        );
+        assert!(validator
+            .validate_arguments(&["../../../etc/passwd"])
+            .is_err());
         assert!(validator.validate_arguments(&["|rm -rf /"]).is_err());
     }
 
@@ -566,22 +564,16 @@ mod tests {
         assert!(validator.validate_arguments(&["docs/README.md"]).is_ok());
 
         // Path traversal attempts
-        assert!(
-            validator
-                .validate_arguments(&["../../../etc/passwd"])
-                .is_err()
-        );
-        assert!(
-            validator
-                .validate_arguments(&["..\\..\\windows\\system32"])
-                .is_err()
-        );
+        assert!(validator
+            .validate_arguments(&["../../../etc/passwd"])
+            .is_err());
+        assert!(validator
+            .validate_arguments(&["..\\..\\windows\\system32"])
+            .is_err());
         assert!(validator.validate_arguments(&["/etc/passwd"]).is_err());
-        assert!(
-            validator
-                .validate_arguments(&["C:\\Windows\\System32"])
-                .is_err()
-        );
+        assert!(validator
+            .validate_arguments(&["C:\\Windows\\System32"])
+            .is_err());
     }
 
     #[test]
@@ -590,11 +582,9 @@ mod tests {
 
         // Command injection attempts
         assert!(validator.validate_arguments(&["; rm -rf /"]).is_err());
-        assert!(
-            validator
-                .validate_arguments(&["| cat /etc/passwd"])
-                .is_err()
-        );
+        assert!(validator
+            .validate_arguments(&["| cat /etc/passwd"])
+            .is_err());
         assert!(validator.validate_arguments(&["&& echo pwned"]).is_err());
         assert!(validator.validate_arguments(&["$(whoami)"]).is_err());
         assert!(validator.validate_arguments(&["`id`"]).is_err());
@@ -610,26 +600,18 @@ mod tests {
         let validator = SecurityValidator::new().unwrap();
 
         // Dangerous Git options that should be blocked
-        assert!(
-            validator
-                .validate_arguments(&["--upload-pack=/bin/sh"])
-                .is_err()
-        );
-        assert!(
-            validator
-                .validate_arguments(&["--receive-pack=evil"])
-                .is_err()
-        );
-        assert!(
-            validator
-                .validate_arguments(&["--ext=sh -c 'rm -rf /'"])
-                .is_err()
-        );
-        assert!(
-            validator
-                .validate_arguments(&["--config=alias.test=!sh"])
-                .is_err()
-        );
+        assert!(validator
+            .validate_arguments(&["--upload-pack=/bin/sh"])
+            .is_err());
+        assert!(validator
+            .validate_arguments(&["--receive-pack=evil"])
+            .is_err());
+        assert!(validator
+            .validate_arguments(&["--ext=sh -c 'rm -rf /'"])
+            .is_err());
+        assert!(validator
+            .validate_arguments(&["--config=alias.test=!sh"])
+            .is_err());
 
         // Safe Git options
         assert!(validator.validate_arguments(&["--pretty=oneline"]).is_ok());

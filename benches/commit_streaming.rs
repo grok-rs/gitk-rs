@@ -3,7 +3,7 @@
 //! This file benchmarks the commit streaming functionality which is critical
 //! for performance with large repositories.
 
-use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use gitk_rs::git::{CommitStream, GitRepository};
 use std::path::PathBuf;
 use std::process::Command;

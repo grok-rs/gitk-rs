@@ -1,6 +1,6 @@
 use crate::git::GitRepository;
 use crate::models::GitCommit;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]

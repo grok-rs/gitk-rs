@@ -1123,11 +1123,9 @@ mod tests {
         assert!(history.len() >= 2);
 
         // Verify operations are recorded
-        assert!(
-            history
-                .iter()
-                .any(|op| op.operation_type == OperationType::TagCreate)
-        );
+        assert!(history
+            .iter()
+            .any(|op| op.operation_type == OperationType::TagCreate));
 
         Ok(())
     }

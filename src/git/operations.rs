@@ -941,16 +941,12 @@ mod tests {
         assert!(history.len() >= 3);
 
         // Verify operation types are recorded correctly
-        assert!(
-            history
-                .iter()
-                .any(|op| op.operation_type == OperationType::BranchCreate)
-        );
-        assert!(
-            history
-                .iter()
-                .any(|op| op.operation_type == OperationType::BranchCheckout)
-        );
+        assert!(history
+            .iter()
+            .any(|op| op.operation_type == OperationType::BranchCreate));
+        assert!(history
+            .iter()
+            .any(|op| op.operation_type == OperationType::BranchCheckout));
 
         Ok(())
     }

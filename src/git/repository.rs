@@ -1,6 +1,6 @@
 use crate::git::GitCommands;
 use crate::models::{GitCommit, RepositoryInfo};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use git2::{Repository, RepositoryOpenFlags};
 use std::path::Path;
 
@@ -338,13 +338,11 @@ mod tests {
         create_test_commit(&repo_path, "test.txt", "Hello, World!", "Initial commit")?;
 
         let repository = GitRepository::discover(&repo_path)?;
-        assert!(
-            repository
-                .repo
-                .workdir()
-                .unwrap_or(repository.repo.path())
-                .exists()
-        );
+        assert!(repository
+            .repo
+            .workdir()
+            .unwrap_or(repository.repo.path())
+            .exists());
         assert_eq!(
             repository.info().name,
             repo_path.file_name().unwrap().to_string_lossy()

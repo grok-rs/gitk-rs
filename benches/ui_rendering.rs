@@ -4,7 +4,7 @@
 //! particularly for the commit graph and diff viewer components.
 
 use chrono::{DateTime, Utc};
-use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use egui::Ui;
 use gitk_rs::{
     models::GitCommit,

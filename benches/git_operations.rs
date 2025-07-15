@@ -3,7 +3,7 @@
 //! This file contains performance benchmarks for core Git operations
 //! to ensure optimal performance with large repositories.
 
-use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use gitk_rs::git::GitRepository;
 use std::path::PathBuf;
 use std::process::Command;
