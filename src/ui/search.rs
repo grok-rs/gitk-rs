@@ -1,5 +1,5 @@
-use eframe::egui;
 use crate::state::AppState;
+use eframe::egui;
 
 pub struct SearchPanel {
     search_text: String,
@@ -17,7 +17,7 @@ impl SearchPanel {
     pub fn show(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
         ui.horizontal(|ui| {
             let search_response = ui.text_edit_singleline(&mut self.search_text);
-            
+
             if search_response.changed() {
                 state.search_commits(&self.search_text);
             }
@@ -35,7 +35,7 @@ impl SearchPanel {
 
             ui.label("Author:");
             let author_response = ui.text_edit_singleline(&mut state.filter_author);
-            
+
             if author_response.changed() {
                 // Apply author filter
                 self.apply_filters(state);

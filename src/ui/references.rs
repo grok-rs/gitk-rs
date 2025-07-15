@@ -1,5 +1,5 @@
-use eframe::egui;
 use crate::state::AppState;
+use eframe::egui;
 
 pub struct ReferencesPanel {
     show_local_branches: bool,
@@ -26,7 +26,7 @@ impl ReferencesPanel {
         ui.horizontal(|ui| {
             ui.label("Filter:");
             ui.text_edit_singleline(&mut self.filter_text);
-            
+
             if ui.button("🔄").on_hover_text("Refresh").clicked() {
                 state.refresh_references();
             }
@@ -61,7 +61,7 @@ impl ReferencesPanel {
                 self.show_local_branches_section(ui, state);
             }
 
-            // Remote branches  
+            // Remote branches
             if self.show_remote_branches {
                 self.show_remote_branches_section(ui, state);
             }
@@ -78,46 +78,49 @@ impl ReferencesPanel {
             let branches = state.get_branches();
             let current_branch = state.get_current_branch().cloned();
             let mut branch_to_switch = None;
-            
+
             for branch in branches.iter() {
                 if !self.matches_filter(branch) {
                     continue;
                 }
-                
+
                 // Skip remote branches in this section
                 if branch.contains('/') && !branch.starts_with("refs/heads/") {
                     continue;
                 }
-                
+
                 ui.horizontal(|ui| {
-                    let is_current = current_branch.as_ref().map(|cb| cb == branch).unwrap_or(false);
-                    
+                    let is_current = current_branch
+                        .as_ref()
+                        .map(|cb| cb == branch)
+                        .unwrap_or(false);
+
                     if is_current {
                         ui.colored_label(egui::Color32::GREEN, "📍");
                     } else {
                         ui.label("  ");
                     }
-                    
+
                     let response = ui.selectable_label(is_current, branch);
-                    
+
                     if response.clicked() && !is_current {
                         branch_to_switch = Some(branch.clone());
                     }
-                    
+
                     response.context_menu(|ui| {
                         if ui.button("Switch to branch").clicked() {
                             branch_to_switch = Some(branch.clone());
                             ui.close_menu();
                         }
-                        
+
                         if ui.button("View commits").clicked() {
                             // This would switch to viewing this branch's commits
                             branch_to_switch = Some(branch.clone());
                             ui.close_menu();
                         }
-                        
+
                         ui.separator();
-                        
+
                         if ui.button("Delete branch").clicked() {
                             // TODO: Implement branch deletion with confirmation
                             ui.close_menu();
@@ -125,7 +128,7 @@ impl ReferencesPanel {
                     });
                 });
             }
-            
+
             // Handle branch switching outside the loop
             if let Some(branch) = branch_to_switch {
                 state.switch_to_branch(&branch);
@@ -140,17 +143,17 @@ impl ReferencesPanel {
                     if !self.matches_filter(&branch.name) {
                         continue;
                     }
-                    
+
                     ui.horizontal(|ui| {
                         ui.colored_label(egui::Color32::LIGHT_BLUE, "🌐");
                         let response = ui.selectable_label(false, &branch.name);
-                        
+
                         response.context_menu(|ui| {
                             if ui.button("Create local branch").clicked() {
                                 // TODO: Implement creating local branch from remote
                                 ui.close_menu();
                             }
-                            
+
                             if ui.button("View commits").clicked() {
                                 // TODO: Implement viewing remote branch commits
                                 ui.close_menu();
@@ -165,29 +168,29 @@ impl ReferencesPanel {
     fn show_tags_section(&self, ui: &mut egui::Ui, state: &AppState) {
         ui.collapsing("Tags", |ui| {
             let tags = state.get_tags();
-            
+
             for tag in tags.iter() {
                 if !self.matches_filter(tag) {
                     continue;
                 }
-                
+
                 ui.horizontal(|ui| {
                     ui.colored_label(egui::Color32::YELLOW, "🏷️");
                     let response = ui.selectable_label(false, tag);
-                    
+
                     response.context_menu(|ui| {
                         if ui.button("View commit").clicked() {
                             // TODO: Implement jumping to tag commit
                             ui.close_menu();
                         }
-                        
+
                         if ui.button("Create branch from tag").clicked() {
                             // TODO: Implement creating branch from tag
                             ui.close_menu();
                         }
-                        
+
                         ui.separator();
-                        
+
                         if ui.button("Delete tag").clicked() {
                             // TODO: Implement tag deletion with confirmation
                             ui.close_menu();
@@ -202,8 +205,9 @@ impl ReferencesPanel {
         if self.filter_text.is_empty() {
             return true;
         }
-        
-        name.to_lowercase().contains(&self.filter_text.to_lowercase())
+
+        name.to_lowercase()
+            .contains(&self.filter_text.to_lowercase())
     }
 }
 
@@ -254,18 +258,24 @@ impl CreateBranchDialog {
 
                     if self.from_commit.is_empty() {
                         if let Some(current_branch) = state.get_current_branch() {
-                            ui.label(format!("Will branch from current HEAD of '{}'", current_branch));
+                            ui.label(format!(
+                                "Will branch from current HEAD of '{}'",
+                                current_branch
+                            ));
                         }
                     }
 
                     ui.separator();
 
                     ui.horizontal(|ui| {
-                        let can_create = !self.branch_name.is_empty() && 
-                                       !self.branch_name.contains(' ') &&
-                                       !self.branch_name.contains('/');
+                        let can_create = !self.branch_name.is_empty()
+                            && !self.branch_name.contains(' ')
+                            && !self.branch_name.contains('/');
 
-                        if ui.add_enabled(can_create, egui::Button::new("Create")).clicked() {
+                        if ui
+                            .add_enabled(can_create, egui::Button::new("Create"))
+                            .clicked()
+                        {
                             let from_commit = if self.from_commit.is_empty() {
                                 "HEAD".to_string()
                             } else {
@@ -314,7 +324,9 @@ impl CreateTagDialog {
         self.show = true;
         self.tag_name.clear();
         self.tag_message.clear();
-        self.target_commit = commit_sha.map(|s| s.to_string()).unwrap_or_else(|| "HEAD".to_string());
+        self.target_commit = commit_sha
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "HEAD".to_string());
         self.is_annotated = false;
     }
 
@@ -353,17 +365,21 @@ impl CreateTagDialog {
                     ui.separator();
 
                     ui.horizontal(|ui| {
-                        let can_create = !self.tag_name.is_empty() && 
-                                       !self.target_commit.is_empty() &&
-                                       (!self.is_annotated || !self.tag_message.is_empty());
+                        let can_create = !self.tag_name.is_empty()
+                            && !self.target_commit.is_empty()
+                            && (!self.is_annotated || !self.tag_message.is_empty());
 
-                        if ui.add_enabled(can_create, egui::Button::new("Create")).clicked() {
+                        if ui
+                            .add_enabled(can_create, egui::Button::new("Create"))
+                            .clicked()
+                        {
                             let message = if self.is_annotated && !self.tag_message.is_empty() {
                                 Some(self.tag_message.clone())
                             } else {
                                 None
                             };
-                            result = Some((self.tag_name.clone(), self.target_commit.clone(), message));
+                            result =
+                                Some((self.tag_name.clone(), self.target_commit.clone(), message));
                             keep_open = false;
                         }
 

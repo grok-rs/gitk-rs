@@ -1,8 +1,8 @@
+use crate::git::GitRepository;
+use crate::models::GitCommit;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::models::GitCommit;
-use crate::git::GitRepository;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ViewFilter {
@@ -54,16 +54,18 @@ impl ViewFilter {
     pub fn matches_commit(&self, commit: &GitCommit) -> bool {
         // Author filter
         if let Some(ref author_filter) = self.author_filter {
-            if !self.text_matches(&commit.author.name, author_filter) &&
-               !self.text_matches(&commit.author.email, author_filter) {
+            if !self.text_matches(&commit.author.name, author_filter)
+                && !self.text_matches(&commit.author.email, author_filter)
+            {
                 return false;
             }
         }
 
         // Committer filter
         if let Some(ref committer_filter) = self.committer_filter {
-            if !self.text_matches(&commit.committer.name, committer_filter) &&
-               !self.text_matches(&commit.committer.email, committer_filter) {
+            if !self.text_matches(&commit.committer.name, committer_filter)
+                && !self.text_matches(&commit.committer.email, committer_filter)
+            {
                 return false;
             }
         }
@@ -178,18 +180,19 @@ impl GitView {
 
     pub fn update_commits(&mut self, repo: &GitRepository) -> Result<()> {
         self.is_loading = true;
-        
+
         // Use git rev-list with filter arguments for efficient filtering
         let args = self.filter.to_git_args();
         let git_args: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
-        
+
         match repo.get_commits_from_git_args(&git_args) {
             Ok(commits) => {
                 // Apply additional filters that git can't handle
-                self.commits = commits.into_iter()
+                self.commits = commits
+                    .into_iter()
                     .filter(|commit| self.filter.matches_commit(commit))
                     .collect();
-                
+
                 self.last_updated = Some(std::time::SystemTime::now());
                 self.is_loading = false;
                 Ok(())
@@ -210,7 +213,8 @@ impl GitView {
             Some(last_updated) => {
                 std::time::SystemTime::now()
                     .duration_since(last_updated)
-                    .unwrap_or(std::time::Duration::MAX) > max_age
+                    .unwrap_or(std::time::Duration::MAX)
+                    > max_age
             }
             None => true,
         }
@@ -230,9 +234,9 @@ impl ViewManager {
         let default_filter = ViewFilter::default();
         let default_view = GitView::new(default_filter);
         let default_name = "Default".to_string();
-        
+
         views.insert(default_name.clone(), default_view);
-        
+
         Self {
             views,
             current_view: default_name.clone(),
@@ -249,11 +253,11 @@ impl ViewManager {
         if name == self.default_view {
             return Err(anyhow::anyhow!("Cannot remove default view"));
         }
-        
+
         if name == self.current_view {
             self.current_view = self.default_view.clone();
         }
-        
+
         self.views.remove(name);
         Ok(())
     }
@@ -309,13 +313,13 @@ impl ViewManager {
 
     pub fn refresh_all_views(&mut self, repo: &GitRepository) -> Result<()> {
         let view_names: Vec<String> = self.views.keys().cloned().collect();
-        
+
         for name in view_names {
             if let Err(e) = self.refresh_view(&name, repo) {
                 tracing::warn!("Failed to refresh view '{}': {}", name, e);
             }
         }
-        
+
         Ok(())
     }
 
@@ -334,7 +338,7 @@ impl GitRepository {
     /// Get commits using git rev-list arguments
     pub fn get_commits_from_git_args(&self, args: &[&str]) -> Result<Vec<GitCommit>> {
         let output = self.commands().rev_list(args)?;
-        
+
         let mut commits = Vec::new();
         for line in output.lines() {
             if let Ok(oid) = git2::Oid::from_str(line.trim()) {
@@ -345,7 +349,7 @@ impl GitRepository {
                 }
             }
         }
-        
+
         Ok(commits)
     }
 

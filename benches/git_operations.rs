@@ -3,7 +3,7 @@
 //! This file contains performance benchmarks for core Git operations
 //! to ensure optimal performance with large repositories.
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
 use gitk_rs::git::GitRepository;
 use std::path::PathBuf;
 use std::process::Command;
@@ -35,9 +35,9 @@ fn create_large_test_repo(commit_count: usize) -> anyhow::Result<(TempDir, PathB
     for i in 0..commit_count {
         let content = format!("Content for commit {}", i);
         let filename = format!("file_{}.txt", i);
-        
+
         std::fs::write(repo_path.join(&filename), content)?;
-        
+
         Command::new("git")
             .args(["add", &filename])
             .current_dir(&repo_path)
@@ -66,11 +66,11 @@ fn bench_repository_discovery(c: &mut Criterion) {
 /// Benchmark commit loading performance with different repository sizes
 fn bench_commit_loading(c: &mut Criterion) {
     let mut group = c.benchmark_group("commit_loading");
-    
+
     for commit_count in [10, 50, 100, 500].iter() {
         let (_temp_dir, repo_path) = create_large_test_repo(*commit_count).unwrap();
         let repo = GitRepository::discover(&repo_path).unwrap();
-        
+
         group.throughput(Throughput::Elements(*commit_count as u64));
         group.bench_with_input(
             BenchmarkId::new("commits", commit_count),
@@ -82,14 +82,14 @@ fn bench_commit_loading(c: &mut Criterion) {
             },
         );
     }
-    
+
     group.finish();
 }
 
 /// Benchmark branch operations
 fn bench_branch_operations(c: &mut Criterion) {
     let (_temp_dir, repo_path) = create_large_test_repo(10).unwrap();
-    
+
     // Create some branches
     for i in 0..5 {
         Command::new("git")
@@ -97,14 +97,14 @@ fn bench_branch_operations(c: &mut Criterion) {
             .current_dir(&repo_path)
             .output()
             .unwrap();
-            
+
         Command::new("git")
             .args(["checkout", "main"])
             .current_dir(&repo_path)
             .output()
             .unwrap();
     }
-    
+
     let repo = GitRepository::discover(&repo_path).unwrap();
 
     c.bench_function("get_branches", |b| {
@@ -119,10 +119,10 @@ fn bench_diff_operations(c: &mut Criterion) {
     let (_temp_dir, repo_path) = create_large_test_repo(5).unwrap();
     let repo = GitRepository::discover(&repo_path).unwrap();
     let commits = repo.get_commits(Some(5)).unwrap();
-    
+
     if !commits.is_empty() {
         let commit_id = &commits[0].id;
-        
+
         c.bench_function("get_commit_diff", |b| {
             b.iter(|| {
                 let _diff = repo.get_commit_diff_enhanced(black_box(commit_id)).unwrap();

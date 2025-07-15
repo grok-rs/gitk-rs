@@ -71,8 +71,13 @@ pub enum DiffStatus {
 impl GitCommit {
     pub fn new(commit: &git2::Commit) -> anyhow::Result<Self> {
         let id = commit.id().to_string();
-        let short_id = commit.as_object().short_id()?.as_str().unwrap_or("").to_string();
-        
+        let short_id = commit
+            .as_object()
+            .short_id()?
+            .as_str()
+            .unwrap_or("")
+            .to_string();
+
         let author = GitSignature {
             name: commit.author().name().unwrap_or("").to_string(),
             email: commit.author().email().unwrap_or("").to_string(),
@@ -89,7 +94,7 @@ impl GitCommit {
 
         let message = commit.message().unwrap_or("").to_string();
         let summary = commit.summary().unwrap_or("").to_string();
-        
+
         let parent_ids = commit.parent_ids().map(|id| id.to_string()).collect();
         let tree_id = commit.tree_id().to_string();
 

@@ -1,7 +1,7 @@
 # Rust formatting configuration for gitk-rs
 # See https://rust-lang.github.io/rustfmt for configuration options
 
-# Edition to use
+# Edition to use (2024 edition)
 edition = "2024"
 
 # Maximum line width
@@ -17,50 +17,19 @@ newline_style = "Unix"
 # Use small heuristics
 use_small_heuristics = "Default"
 
-# Indent style
-indent_style = "Block"
-
-# Wrap comments
-wrap_comments = true
-comment_width = 80
-normalize_comments = true
-
-# Format code in doc comments
-format_code_in_doc_comments = true
-
 # Remove extra newlines
 remove_nested_parens = true
 
 # Function definitions
-fn_args_layout = "Tall"
-fn_single_line = false
+fn_params_layout = "Tall"
 
-# Control flow
-control_brace_style = "AlwaysSameLine"
-else_if_brace_style = "AlwaysSameLine"
+# Keep stable formatting options only
 
 # Imports
-imports_layout = "Mixed"
-imports_granularity = "Crate"
-group_imports = "StdExternalCrate"
 reorder_imports = true
 
-# Structs and enums
-struct_field_align_threshold = 0
-enum_discrim_align_threshold = 0
-
 # Expressions
-overflow_delimited_expr = false
-format_strings = true
 force_explicit_abi = true
 
-# Misc
-empty_item_single_line = true
-struct_lit_single_line = true
-normalize_doc_attributes = true
-license_template_path = ""
-
-# Unstable options (require nightly)
-# format_macro_matchers = true
-# format_macro_bodies = true
-# hex_literal_case = "Preserve"
+# 2024 edition allows more stable formatting options
+# Note: Some options may still require nightly, but 2024 edition enables more

@@ -1,6 +1,6 @@
-use eframe::egui;
 use crate::git::{ViewFilter, ViewManager, ViewPreset};
 use crate::state::AppState;
+use eframe::egui;
 
 pub struct ViewsPanel {
     show_create_dialog: bool,
@@ -50,10 +50,10 @@ impl ViewsPanel {
             ui.horizontal(|ui| {
                 ui.strong("Current:");
                 ui.label(view_manager.get_current_view_name());
-                
+
                 if let Some(current_view) = view_manager.get_current_view() {
                     ui.label(format!("({} commits)", current_view.commits.len()));
-                    
+
                     if current_view.is_loading {
                         ui.spinner();
                     }
@@ -74,7 +74,7 @@ impl ViewsPanel {
                 for view_name in view_names {
                     ui.horizontal(|ui| {
                         let is_current = view_name == current_view_name;
-                        
+
                         if is_current {
                             ui.colored_label(egui::Color32::GREEN, "📋");
                         } else {
@@ -82,7 +82,7 @@ impl ViewsPanel {
                         }
 
                         let response = ui.selectable_label(is_current, &view_name);
-                        
+
                         if response.clicked() && !is_current {
                             view_to_switch = Some(view_name.clone());
                         }
@@ -119,9 +119,12 @@ impl ViewsPanel {
 
                         // Show view description
                         if let Some(view) = view_manager.get_view(&view_name) {
-                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                                ui.weak(&view.filter.description);
-                            });
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    ui.weak(&view.filter.description);
+                                },
+                            );
                         }
                     });
                 }
@@ -151,13 +154,13 @@ impl ViewsPanel {
     fn show_presets_menu(&self, ui: &mut egui::Ui, state: &mut AppState) {
         ui.menu_button("Presets", |ui| {
             let presets = ViewPreset::create_common_presets();
-            
+
             for preset in presets {
                 if ui.button(&preset.name).clicked() {
                     if let Some(ref mut view_manager) = state.view_manager {
                         view_manager.add_view(preset.name.clone(), preset.filter);
                         let _ = view_manager.switch_view(&preset.name);
-                        
+
                         if let Some(ref repo) = state.repository {
                             let _ = view_manager.update_current_view(repo);
                         }
@@ -177,7 +180,7 @@ impl ViewsPanel {
                     self.show_create_dialog = false;
                 }
             }
-            
+
             if !self.create_dialog.is_open() {
                 self.show_create_dialog = false;
             }
@@ -193,7 +196,7 @@ impl ViewsPanel {
                     self.show_edit_dialog = false;
                 }
             }
-            
+
             if !self.edit_dialog.is_open() {
                 self.show_edit_dialog = false;
             }
@@ -256,15 +259,24 @@ impl CreateViewDialog {
                             ui.label("Author:");
                             let mut author = self.filter.author_filter.clone().unwrap_or_default();
                             if ui.text_edit_singleline(&mut author).changed() {
-                                self.filter.author_filter = if author.is_empty() { None } else { Some(author) };
+                                self.filter.author_filter = if author.is_empty() {
+                                    None
+                                } else {
+                                    Some(author)
+                                };
                             }
                         });
 
                         ui.horizontal(|ui| {
                             ui.label("Committer:");
-                            let mut committer = self.filter.committer_filter.clone().unwrap_or_default();
+                            let mut committer =
+                                self.filter.committer_filter.clone().unwrap_or_default();
                             if ui.text_edit_singleline(&mut committer).changed() {
-                                self.filter.committer_filter = if committer.is_empty() { None } else { Some(committer) };
+                                self.filter.committer_filter = if committer.is_empty() {
+                                    None
+                                } else {
+                                    Some(committer)
+                                };
                             }
                         });
                     });
@@ -272,9 +284,14 @@ impl CreateViewDialog {
                     ui.collapsing("Message", |ui| {
                         ui.horizontal(|ui| {
                             ui.label("Contains:");
-                            let mut message = self.filter.message_filter.clone().unwrap_or_default();
+                            let mut message =
+                                self.filter.message_filter.clone().unwrap_or_default();
                             if ui.text_edit_singleline(&mut message).changed() {
-                                self.filter.message_filter = if message.is_empty() { None } else { Some(message) };
+                                self.filter.message_filter = if message.is_empty() {
+                                    None
+                                } else {
+                                    Some(message)
+                                };
                             }
                         });
 
@@ -289,7 +306,11 @@ impl CreateViewDialog {
                             ui.label("From:");
                             let mut date_from = self.filter.date_from.clone().unwrap_or_default();
                             if ui.text_edit_singleline(&mut date_from).changed() {
-                                self.filter.date_from = if date_from.is_empty() { None } else { Some(date_from) };
+                                self.filter.date_from = if date_from.is_empty() {
+                                    None
+                                } else {
+                                    Some(date_from)
+                                };
                             }
                         });
 
@@ -297,7 +318,11 @@ impl CreateViewDialog {
                             ui.label("To:");
                             let mut date_to = self.filter.date_to.clone().unwrap_or_default();
                             if ui.text_edit_singleline(&mut date_to).changed() {
-                                self.filter.date_to = if date_to.is_empty() { None } else { Some(date_to) };
+                                self.filter.date_to = if date_to.is_empty() {
+                                    None
+                                } else {
+                                    Some(date_to)
+                                };
                             }
                         });
 
@@ -309,7 +334,11 @@ impl CreateViewDialog {
                             ui.label("Branch:");
                             let mut branch = self.filter.branch_filter.clone().unwrap_or_default();
                             if ui.text_edit_singleline(&mut branch).changed() {
-                                self.filter.branch_filter = if branch.is_empty() { None } else { Some(branch) };
+                                self.filter.branch_filter = if branch.is_empty() {
+                                    None
+                                } else {
+                                    Some(branch)
+                                };
                             }
                         });
 
@@ -317,14 +346,18 @@ impl CreateViewDialog {
                             ui.label("File:");
                             let mut file = self.filter.file_filter.clone().unwrap_or_default();
                             if ui.text_edit_singleline(&mut file).changed() {
-                                self.filter.file_filter = if file.is_empty() { None } else { Some(file) };
+                                self.filter.file_filter =
+                                    if file.is_empty() { None } else { Some(file) };
                             }
                         });
 
                         ui.horizontal(|ui| {
                             ui.label("Max commits:");
                             let mut max_commits = self.filter.max_commits.unwrap_or(1000);
-                            if ui.add(egui::DragValue::new(&mut max_commits).range(1..=10000)).changed() {
+                            if ui
+                                .add(egui::DragValue::new(&mut max_commits).range(1..=10000))
+                                .changed()
+                            {
                                 self.filter.max_commits = Some(max_commits);
                             }
                         });
@@ -337,8 +370,11 @@ impl CreateViewDialog {
                     // Buttons
                     ui.horizontal(|ui| {
                         let can_create = !self.filter.name.is_empty();
-                        
-                        if ui.add_enabled(can_create, egui::Button::new("Create")).clicked() {
+
+                        if ui
+                            .add_enabled(can_create, egui::Button::new("Create"))
+                            .clicked()
+                        {
                             result = Some(self.filter.clone());
                             self.is_open = false;
                         }
