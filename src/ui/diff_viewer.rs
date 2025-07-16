@@ -508,12 +508,7 @@ impl DiffViewer {
     }
 
     /// Show inline changes view with word-level highlighting
-    fn show_inline_changes_view(
-        &self,
-        ui: &mut egui::Ui,
-        diffs: &[GitDiff],
-        _state: &AppState,
-    ) {
+    fn show_inline_changes_view(&self, ui: &mut egui::Ui, diffs: &[GitDiff], _state: &AppState) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             for (file_idx, diff) in diffs.iter().enumerate() {
                 self.show_file_header(ui, diff, file_idx);

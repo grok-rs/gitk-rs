@@ -655,7 +655,7 @@ impl TagManager {
         // Compare version components
         for (va, vb) in version_a.iter().zip(version_b.iter()) {
             match va.cmp(vb) {
-                std::cmp::Ordering::Equal => {},
+                std::cmp::Ordering::Equal => {}
                 other => return other,
             }
         }
