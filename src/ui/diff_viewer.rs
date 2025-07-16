@@ -458,7 +458,7 @@ impl DiffViewer {
             let available_width = ui.available_width();
             let left_width = available_width * self.split_ratio;
             let right_width = available_width - left_width - 10.0; // 10px for separator
-            // Left side (old/removed)
+                                                                   // Left side (old/removed)
             ui.allocate_ui_with_layout(
                 egui::vec2(left_width, ui.available_height()),
                 egui::Layout::top_down(egui::Align::LEFT),
