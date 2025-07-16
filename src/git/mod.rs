@@ -15,9 +15,9 @@ pub mod tags;
 pub mod views;
 
 pub use commands::*;
-pub use commit::*;
+// pub use commit::*;
 pub use commits::*;
-pub use diff::*;
+// pub use diff::*;
 pub use error_handling::*;
 pub use operations::*;
 pub use platform_security::*;

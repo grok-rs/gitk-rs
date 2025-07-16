@@ -2,7 +2,7 @@ use crate::git::operations::{OperationRecord, OperationType};
 use crate::git::{ErrorReporter, GitRepository, InputSanitizer, InputValidator};
 use anyhow::Result;
 use git2::{ObjectType, Oid, Repository, Signature};
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 /// Comprehensive tag management system
 pub struct TagManager {
@@ -655,7 +655,7 @@ impl TagManager {
         // Compare version components
         for (va, vb) in version_a.iter().zip(version_b.iter()) {
             match va.cmp(vb) {
-                std::cmp::Ordering::Equal => continue,
+                std::cmp::Ordering::Equal => {},
                 other => return other,
             }
         }

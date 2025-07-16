@@ -38,13 +38,13 @@ impl GitkApp {
 
     fn show_menu_bar(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
-            egui::menu::bar(ui, |ui| {
+            egui::MenuBar::new().ui(ui, |ui| {
                 ui.menu_button("File", |ui| {
                     if ui.button("Open Repository...").clicked() {
                         if let Some(path) = rfd::FileDialog::new().pick_folder() {
                             self.open_repository(path);
                         }
-                        ui.close_menu();
+                        ui.close();
                     }
 
                     if ui.button("Recent Repositories").clicked() {
@@ -75,26 +75,26 @@ impl GitkApp {
                     ui.separator();
                     if ui.button("Settings").clicked() {
                         self.state.show_settings_dialog = true;
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
 
                 ui.menu_button("Help", |ui| {
                     if ui.button("Keyboard Shortcuts").clicked() {
                         self.state.show_shortcuts_dialog = true;
-                        ui.close_menu();
+                        ui.close();
                     }
                     ui.separator();
                     if ui.button("About").clicked() {
                         self.state.show_about_dialog = true;
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
             });
         });
     }
 
-    fn show_status_bar(&mut self, ctx: &egui::Context) {
+    fn show_status_bar(&self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 if let Some(repo_info) = self.state.repository_info() {
@@ -258,7 +258,7 @@ impl GitkApp {
         }
     }
 
-    fn update_window_size(&mut self, _frame: &eframe::Frame) {
+    fn update_window_size(&self, _frame: &eframe::Frame) {
         // Window size tracking would be implemented here
         // For now, we'll rely on the save method being called on app close
         // The responsive layout adjustments in MainWindow handle runtime responsiveness

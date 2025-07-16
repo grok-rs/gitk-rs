@@ -1,6 +1,6 @@
 use crate::git::GitRepository;
 use crate::models::GitCommit;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -146,7 +146,7 @@ impl RefManager {
         Ok(())
     }
 
-    fn load_remotes(&mut self, _repo: &GitRepository) -> Result<()> {
+    fn load_remotes(&self, _repo: &GitRepository) -> Result<()> {
         // Remote branches are already loaded in load_branches
         // This could be extended to load remote information
         Ok(())

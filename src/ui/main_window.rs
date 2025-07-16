@@ -139,7 +139,7 @@ impl MainWindow {
     }
 
     /// Handle keyboard shortcuts for the main window
-    fn handle_keyboard_shortcuts(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
+    fn handle_keyboard_shortcuts(&mut self, ui: &egui::Ui, state: &mut AppState) {
         let ctx = ui.ctx();
 
         // File operations
@@ -179,21 +179,21 @@ impl MainWindow {
 
     /// Show comprehensive menu bar
     fn show_menu_bar(&mut self, ui: &mut egui::Ui, state: &mut AppState, _config: &AppConfig) {
-        egui::menu::bar(ui, |ui| {
+        egui::MenuBar::new().ui(ui, |ui| {
             // File menu
             ui.menu_button("File", |ui| {
                 if ui.button("📁 Open Repository...").clicked() {
                     // Would open file dialog
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("📄 Open Recent").clicked() {
                     // Would show recent repositories
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("🔄 Refresh").clicked() {
                     state.refresh_commits();
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("❌ Exit").clicked() {
@@ -205,13 +205,13 @@ impl MainWindow {
             ui.menu_button("Edit", |ui| {
                 if ui.button("📋 Copy Commit ID").clicked() {
                     if let Some(commit) = state.get_selected_commit() {
-                        ui.output_mut(|o| o.copied_text = commit.id.clone());
+                        ui.ctx().copy_text(commit.id.clone());
                     }
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("🔍 Find...").clicked() {
                     self.panel_visibility.search = true;
-                    ui.close_menu();
+                    ui.close();
                 }
             });
 
@@ -261,16 +261,16 @@ impl MainWindow {
             ui.menu_button("Git", |ui| {
                 if ui.button("🌿 Branches").clicked() {
                     self.panel_visibility.references = true;
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("🏷️ Tags").clicked() {
                     self.panel_visibility.references = true;
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.separator();
                 if ui.button("📊 Show Graph").clicked() {
                     self.panel_visibility.commit_graph = true;
-                    ui.close_menu();
+                    ui.close();
                 }
             });
 
@@ -278,15 +278,15 @@ impl MainWindow {
             ui.menu_button("Help", |ui| {
                 if ui.button("ℹ️ About").clicked() {
                     // Would show about dialog
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("📚 User Guide").clicked() {
                     // Would open help
-                    ui.close_menu();
+                    ui.close();
                 }
                 if ui.button("⌨️ Keyboard Shortcuts").clicked() {
                     // Would show shortcuts dialog
-                    ui.close_menu();
+                    ui.close();
                 }
             });
         });
@@ -619,7 +619,7 @@ impl MainWindow {
     }
 
     /// Show status bar with repository and selection info
-    fn show_status_bar(&mut self, ui: &mut egui::Ui, state: &AppState) {
+    fn show_status_bar(&self, ui: &mut egui::Ui, state: &AppState) {
         egui::TopBottomPanel::bottom("status_bar")
             .exact_height(25.0)
             .show_inside(ui, |ui| {
@@ -671,7 +671,7 @@ impl MainWindow {
     }
 
     /// Handle context menus
-    fn handle_context_menus(&mut self, ui: &mut egui::Ui, _state: &mut AppState) {
+    fn handle_context_menus(&mut self, ui: &egui::Ui, _state: &mut AppState) {
         if self.show_file_context_menu {
             // Use a simpler context menu approach
             let popup_id = egui::Id::new("file_context_menu");
@@ -683,7 +683,7 @@ impl MainWindow {
                         ui.set_min_width(150.0);
 
                         if ui.button("📋 Copy Path").clicked() {
-                            ui.output_mut(|o| o.copied_text = self.context_file_path.clone());
+                            ui.ctx().copy_text(self.context_file_path.clone());
                             self.show_file_context_menu = false;
                         }
                         if ui.button("👁️ View File").clicked() {
@@ -832,7 +832,7 @@ impl MainWindow {
         }
     }
 
-    fn auto_hide_empty_panels(&mut self) {
+    fn auto_hide_empty_panels(&self) {
         // Hide panels that don't have useful content
         // This could be enhanced to check actual content availability
 

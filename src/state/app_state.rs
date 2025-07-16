@@ -323,7 +323,7 @@ impl AppState {
     }
 
     pub fn switch_to_branch(&mut self, branch_name: &str) {
-        if let Some(ref repo) = self.repository {
+        if let Some(ref _repo) = self.repository {
             // Sanitize branch name for security
             match InputSanitizer::sanitize_ref_name(branch_name) {
                 Ok(sanitized_name) => {

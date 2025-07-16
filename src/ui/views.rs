@@ -1,4 +1,4 @@
-use crate::git::{ViewFilter, ViewManager, ViewPreset};
+use crate::git::{ViewFilter, ViewPreset};
 use crate::state::AppState;
 use eframe::egui;
 
@@ -90,21 +90,21 @@ impl ViewsPanel {
                         response.context_menu(|ui| {
                             if ui.button("Switch to view").clicked() {
                                 view_to_switch = Some(view_name.clone());
-                                ui.close_menu();
+                                ui.close();
                             }
 
                             ui.separator();
 
                             if ui.button("Edit view").clicked() {
                                 view_to_edit = Some(view_name.clone());
-                                ui.close_menu();
+                                ui.close();
                             }
 
                             if ui.button("Refresh view").clicked() {
                                 if let Some(ref repo) = state.repository {
                                     let _ = view_manager.refresh_view(&view_name, repo);
                                 }
-                                ui.close_menu();
+                                ui.close();
                             }
 
                             ui.separator();
@@ -112,7 +112,7 @@ impl ViewsPanel {
                             if view_name != "Default" {
                                 if ui.button("Delete view").clicked() {
                                     view_to_delete = Some(view_name.clone());
-                                    ui.close_menu();
+                                    ui.close();
                                 }
                             }
                         });
@@ -165,7 +165,7 @@ impl ViewsPanel {
                             let _ = view_manager.update_current_view(repo);
                         }
                     }
-                    ui.close_menu();
+                    ui.close();
                 }
             }
         });

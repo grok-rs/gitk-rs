@@ -613,7 +613,7 @@ mod tests {
         let show_ref_result = commands.show_ref(&["--heads"])?;
         assert!(show_ref_result.contains("refs/heads/"));
 
-        let diff_result = commands.diff(&["--name-only", "HEAD~1..HEAD"]);
+        let _diff_result = commands.diff(&["--name-only", "HEAD~1..HEAD"]);
         // This might fail for first commit, which is expected
 
         Ok(())

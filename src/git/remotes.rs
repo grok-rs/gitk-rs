@@ -299,7 +299,7 @@ impl RemoteManager {
         if let Some(ref provider) = self.credentials_provider {
             let provider_clone = provider.as_ref();
             callbacks.credentials(
-                move |url, username_from_url, allowed_types| match provider_clone
+                move |url, username_from_url, _allowed_types| match provider_clone
                     .get_credentials(url, username_from_url)
                 {
                     Ok(Credentials::SshKey(ssh_creds)) => git2::Cred::ssh_key(
@@ -869,7 +869,6 @@ impl RemoteManager {
     }
 
     /// Helper methods
-
     fn validate_and_sanitize_remote_name(&self, name: &str) -> Result<String, String> {
         if let Err(e) = InputValidator::validate_ref_name(name) {
             return Err(format!("Invalid remote name: {}", e));

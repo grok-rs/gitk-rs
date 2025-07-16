@@ -292,7 +292,7 @@ impl CommitGraphRenderer {
         &mut self,
         ui: &mut egui::Ui,
         commits: &[GitCommit],
-        state: &AppState,
+        _state: &AppState,
     ) -> GraphInteractionResult {
         let available_rect = ui.available_rect_before_wrap();
 
@@ -318,7 +318,7 @@ impl CommitGraphRenderer {
     fn compute_graph_layout(
         &mut self,
         commits: &[GitCommit],
-        available_size: egui::Vec2,
+        _available_size: egui::Vec2,
     ) -> GraphLayout {
         // Use cached layout if available and valid
         let cache_key = self.generate_cache_key(commits);
@@ -428,7 +428,7 @@ impl CommitGraphRenderer {
     ) -> HashMap<String, usize> {
         let mut lane_assignments: HashMap<String, usize> = HashMap::new();
         let mut active_lanes: Vec<Option<String>> = vec![None; self.max_branches];
-        let mut next_free_lane = 0;
+        let _next_free_lane = 0;
 
         for commit in commits {
             let commit_id = &commit.id;
@@ -554,7 +554,7 @@ impl CommitGraphRenderer {
         commit_pos: egui::Pos2,
         lane_assignments: &HashMap<String, usize>,
         parent_map: &HashMap<String, Vec<String>>,
-        row: usize,
+        _row: usize,
         commits: &[GitCommit],
     ) -> Vec<ConnectionLine> {
         let mut lines = Vec::new();
@@ -597,7 +597,7 @@ impl CommitGraphRenderer {
         commit_pos: egui::Pos2,
         lane_assignments: &HashMap<String, usize>,
         child_map: &HashMap<String, Vec<String>>,
-        row: usize,
+        _row: usize,
         commits: &[GitCommit],
     ) -> Vec<ConnectionLine> {
         let mut lines = Vec::new();
@@ -935,7 +935,7 @@ impl CommitGraphRenderer {
     /// Render the complete graph
     fn render_graph(
         &self,
-        ui: &mut egui::Ui,
+        ui: &egui::Ui,
         layout: &GraphLayout,
         commits: &[GitCommit],
         rect: egui::Rect,
@@ -1325,14 +1325,14 @@ impl CommitGraphRenderer {
     }
 
     /// Render hover tooltip with commit information
-    fn render_hover_tooltip(&self, ui: &mut egui::Ui, commits: &[GitCommit]) {
+    fn render_hover_tooltip(&self, ui: &egui::Ui, commits: &[GitCommit]) {
         if let Some(ref hovered_commit_id) = self.interaction_state.hovered_commit {
             if let Some(commit) = commits.iter().find(|c| &c.id == hovered_commit_id) {
                 egui::show_tooltip_at_pointer(
                     ui.ctx(),
                     ui.layer_id(),
                     ui.id().with("tooltip"),
-                    |ui: &mut egui::Ui| {
+                    |ui| {
                         ui.vertical(|ui| {
                             ui.label(format!("Commit: {}", &commit.short_id));
                             ui.label(format!("Author: {}", commit.author.name));
@@ -1835,7 +1835,7 @@ impl CommitGraphRenderer {
     }
 
     /// Render interaction hints and help text
-    fn render_interaction_hints(&self, ui: &mut egui::Ui, rect: egui::Rect) {
+    fn render_interaction_hints(&self, ui: &egui::Ui, rect: egui::Rect) {
         // Only show hints if graph is not empty
         if self.interaction_state.selected_commits.is_empty() && self.highlighted_path.is_none() {
             let hint_text = "💡 Click: Select • Double-click: Trace ancestry • Right-click: Context menu\n\

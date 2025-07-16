@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use regex::Regex;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
-use tracing::{debug, error, warn};
+use tracing::{debug, warn};
 
 /// Security validation and sanitization utilities
 /// Implements defense-in-depth security measures for Git operations

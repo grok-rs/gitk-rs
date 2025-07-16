@@ -1144,6 +1144,7 @@ mod tests {
             mainline: None,
             no_commit: false,
             edit_message: false,
+            sign_off: false,
             strategy: MergeStrategy::Recursive,
         };
 
@@ -1237,9 +1238,9 @@ mod tests {
 
         assert_eq!(config.mainline, None);
         assert_eq!(config.no_commit, false);
-        assert_eq!(config.allow_empty, false);
-        assert_eq!(config.allow_empty_message, false);
-        assert_eq!(config.strategy, None);
+        assert_eq!(config.edit_message, false);
+        assert_eq!(config.sign_off, false);
+        assert_eq!(config.strategy, MergeStrategy::Recursive);
 
         Ok(())
     }
@@ -1251,7 +1252,8 @@ mod tests {
         assert_eq!(config.mainline, None);
         assert_eq!(config.no_commit, false);
         assert_eq!(config.edit_message, false);
-        assert_eq!(config.strategy, None);
+        assert_eq!(config.sign_off, false);
+        assert_eq!(config.strategy, MergeStrategy::Recursive);
 
         Ok(())
     }
@@ -1384,7 +1386,7 @@ mod tests {
 
         let git_repo = GitRepository::discover(&repo_path)?;
         let mut operations1 = CommitOperations::new(&git_repo)?;
-        let mut operations2 = CommitOperations::new(&git_repo)?;
+        let operations2 = CommitOperations::new(&git_repo)?;
 
         // Operations should be isolated
         assert_eq!(operations1.operation_history.len(), 0);

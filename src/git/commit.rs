@@ -37,7 +37,7 @@ impl GitRepository {
                 path: full_path,
                 id: entry.id().to_string(),
                 filemode: git2::FileMode::Tree, // Simplified for now
-                is_tree: entry.filemode() == 0o040000, // Tree mode in git
+                is_tree: entry.filemode() == 0o040_000, // Tree mode in git
             });
 
             git2::TreeWalkResult::Ok

@@ -382,13 +382,13 @@ impl CommitGraph {
     }
 
     /// Show context menu for commit operations
-    fn show_context_menu(&mut self, ui: &mut egui::Ui, commit_id: &str, state: &mut AppState) {
+    fn show_context_menu(&self, ui: &mut egui::Ui, commit_id: &str, state: &mut AppState) {
         ui.menu_button("⋮", |ui| {
             ui.set_min_width(150.0);
 
             if ui.button("📋 Copy commit ID").clicked() {
-                ui.output_mut(|o| o.copied_text = commit_id.to_string());
-                ui.close_menu();
+                ui.ctx().copy_text(commit_id.to_string());
+                ui.close();
             }
 
             if ui.button("📋 Copy short ID").clicked() {
@@ -397,45 +397,45 @@ impl CommitGraph {
                 } else {
                     commit_id
                 };
-                ui.output_mut(|o| o.copied_text = short_id.to_string());
-                ui.close_menu();
+                ui.ctx().copy_text(short_id.to_string());
+                ui.close();
             }
 
             ui.separator();
 
             if ui.button("🔍 Show in diff view").clicked() {
                 state.select_commit(commit_id.to_string());
-                ui.close_menu();
+                ui.close();
             }
 
             if ui.button("📊 Show commit details").clicked() {
                 // Could open detailed commit view
                 state.select_commit(commit_id.to_string());
-                ui.close_menu();
+                ui.close();
             }
 
             ui.separator();
 
             if ui.button("🌿 Create branch here").clicked() {
                 // Could open branch creation dialog
-                ui.close_menu();
+                ui.close();
             }
 
             if ui.button("🏷️ Create tag here").clicked() {
                 // Could open tag creation dialog
-                ui.close_menu();
+                ui.close();
             }
 
             ui.separator();
 
             if ui.button("🔄 Reset to this commit").clicked() {
                 // Could show reset confirmation dialog
-                ui.close_menu();
+                ui.close();
             }
 
             if ui.button("🍒 Cherry-pick").clicked() {
                 // Could initiate cherry-pick operation
-                ui.close_menu();
+                ui.close();
             }
         });
     }
