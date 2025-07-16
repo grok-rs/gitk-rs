@@ -57,7 +57,7 @@ tokio-test = "0.4"            # Async testing utilities
 egui_demo_lib = "0.32"        # egui demo components for reference
 
 # Git testing utilities
-git-testtools = "0.1"         # Git repository testing helpers
+# git-testtools = "0.1"         # Git repository testing helpers (commented out - package doesn't exist)
 
 [[bin]]
 name = "gitk-rs"

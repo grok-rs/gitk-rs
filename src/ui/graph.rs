@@ -344,12 +344,16 @@ impl CommitGraphRenderer {
         // Add margin for better visibility
         let graph_margin_x = 20.0;
         let graph_margin_y = 10.0;
-        
+
         for (row, commit) in commits.iter().enumerate() {
             let lane = lane_assignments.get(&commit.id).unwrap_or(&0);
             let pos = egui::Pos2 {
-                x: graph_margin_x + (*lane as f32) * self.column_width * self.zoom_level + self.pan_offset.x,
-                y: graph_margin_y + (row as f32) * self.row_height * self.zoom_level + self.pan_offset.y,
+                x: graph_margin_x
+                    + (*lane as f32) * self.column_width * self.zoom_level
+                    + self.pan_offset.x,
+                y: graph_margin_y
+                    + (row as f32) * self.row_height * self.zoom_level
+                    + self.pan_offset.y,
             };
 
             let color = self.branch_colors[*lane % self.branch_colors.len()];
@@ -444,7 +448,9 @@ impl CommitGraphRenderer {
                 let parent_id = &parents[0];
                 if let Some(parent_lane) = lane_assignments.get(parent_id) {
                     // Check if parent's lane is available and within bounds
-                    if *parent_lane < active_lanes.len() && active_lanes[*parent_lane].as_ref() == Some(parent_id) {
+                    if *parent_lane < active_lanes.len()
+                        && active_lanes[*parent_lane].as_ref() == Some(parent_id)
+                    {
                         active_lanes[*parent_lane] = Some(commit_id.clone());
                         *parent_lane
                     } else {

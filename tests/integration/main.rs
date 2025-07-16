@@ -2,7 +2,7 @@
 //!
 //! This runs comprehensive integration tests across all major components.
 
-// mod integration_module;
+// mod integration_tests;
 
 use gitk_rs::GitkApp;
 use serial_test::serial;

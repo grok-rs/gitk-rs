@@ -214,11 +214,19 @@ impl AppState {
     pub fn poll_commit_stream(&mut self) -> bool {
         if let Some(ref mut stream) = self.commit_stream {
             let mut progress_made = false;
+            tracing::debug!(
+                "Polling commit stream, current commits: {}",
+                self.commits.len()
+            );
             // Poll for new commits (non-blocking)
             while let Some(commit_result) = stream.try_next() {
                 match commit_result {
                     Ok(commit) => {
-                        tracing::debug!("Polled commit: {} - {}", commit.id, commit.message.lines().next().unwrap_or(""));
+                        tracing::debug!(
+                            "Polled commit: {} - {}",
+                            commit.id,
+                            commit.message.lines().next().unwrap_or("")
+                        );
                         self.commits.push(commit);
                         progress_made = true;
                     }
@@ -233,12 +241,21 @@ impl AppState {
 
             // Check if stream is complete
             if stream.is_complete() {
-                tracing::debug!("Commit stream completed, total commits loaded: {}", self.commits.len());
+                tracing::debug!(
+                    "Commit stream completed, total commits loaded: {}",
+                    self.commits.len()
+                );
                 self.stream_complete = true;
                 self.loading = false;
                 self.commit_stream = None;
             }
 
+            if progress_made {
+                tracing::debug!(
+                    "Progress made in poll, total commits now: {}",
+                    self.commits.len()
+                );
+            }
             progress_made
         } else {
             false
@@ -362,20 +379,32 @@ impl AppState {
     pub fn get_filtered_commits(&self) -> &[GitCommit] {
         if let Some(ref view_manager) = self.view_manager {
             if let Some(current_view) = view_manager.get_current_view() {
-                tracing::debug!("Using view manager commits: {} commits", current_view.commits.len());
+                tracing::debug!(
+                    "Using view manager commits: {} commits",
+                    current_view.commits.len()
+                );
                 // If view manager has empty commits but we have loaded commits, use loaded commits instead
                 if current_view.commits.is_empty() && !self.commits.is_empty() {
-                    tracing::debug!("View manager commits empty, falling back to loaded commits: {} commits", self.commits.len());
+                    tracing::debug!(
+                        "View manager commits empty, falling back to loaded commits: {} commits",
+                        self.commits.len()
+                    );
                     &self.commits
                 } else {
                     &current_view.commits
                 }
             } else {
-                tracing::debug!("No current view, using direct commits: {} commits", self.commits.len());
+                tracing::debug!(
+                    "No current view, using direct commits: {} commits",
+                    self.commits.len()
+                );
                 &self.commits
             }
         } else {
-            tracing::debug!("No view manager, using direct commits: {} commits", self.commits.len());
+            tracing::debug!(
+                "No view manager, using direct commits: {} commits",
+                self.commits.len()
+            );
             &self.commits
         }
     }
