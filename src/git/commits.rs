@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::git::operations::{OperationRecord, OperationType};
 use crate::git::{ErrorReporter, GitRepository, InputSanitizer, InputValidator};
 use anyhow::Result;
@@ -11,6 +13,7 @@ pub struct CommitOperations {
 }
 
 /// Commit operation result with detailed information
+
 #[derive(Debug)]
 pub struct CommitOperationResult {
     pub success: bool,
@@ -24,6 +27,7 @@ pub struct CommitOperationResult {
 }
 
 /// Configuration for cherry-pick operations
+
 #[derive(Debug, Clone)]
 pub struct CherryPickConfig {
     pub mainline: Option<usize>, // For merge commits, which parent to use
@@ -35,6 +39,7 @@ pub struct CherryPickConfig {
 }
 
 /// Configuration for revert operations
+
 #[derive(Debug, Clone)]
 pub struct RevertConfig {
     pub mainline: Option<usize>, // For merge commits, which parent to use
@@ -45,6 +50,7 @@ pub struct RevertConfig {
 }
 
 /// Configuration for reset operations
+
 #[derive(Debug, Clone)]
 pub struct ResetConfig {
     pub reset_type: GitResetType, // Type of reset to perform
@@ -53,6 +59,7 @@ pub struct ResetConfig {
 
 /// Git reset types
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum GitResetType {
     Soft,  // Move HEAD only, keep index and working tree
     Mixed, // Move HEAD and reset index, keep working tree
@@ -63,6 +70,7 @@ pub enum GitResetType {
 
 /// Merge strategy options
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum MergeStrategy {
     Recursive, // Default 3-way merge
     Resolve,   // Simple 3-way merge
@@ -82,6 +90,7 @@ pub struct ConflictInfo {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum ConflictType {
     Content,      // Content conflict
     AddAdd,       // Both sides added same file
@@ -1144,6 +1153,7 @@ mod tests {
             mainline: None,
             no_commit: false,
             edit_message: false,
+            sign_off: false,
             strategy: MergeStrategy::Recursive,
         };
 
@@ -1237,9 +1247,9 @@ mod tests {
 
         assert_eq!(config.mainline, None);
         assert_eq!(config.no_commit, false);
-        assert_eq!(config.allow_empty, false);
-        assert_eq!(config.allow_empty_message, false);
-        assert_eq!(config.strategy, None);
+        assert_eq!(config.edit_message, false);
+        assert_eq!(config.sign_off, false);
+        assert_eq!(config.strategy, MergeStrategy::Recursive);
 
         Ok(())
     }
@@ -1251,7 +1261,8 @@ mod tests {
         assert_eq!(config.mainline, None);
         assert_eq!(config.no_commit, false);
         assert_eq!(config.edit_message, false);
-        assert_eq!(config.strategy, None);
+        assert_eq!(config.sign_off, false);
+        assert_eq!(config.strategy, MergeStrategy::Recursive);
 
         Ok(())
     }
@@ -1384,7 +1395,7 @@ mod tests {
 
         let git_repo = GitRepository::discover(&repo_path)?;
         let mut operations1 = CommitOperations::new(&git_repo)?;
-        let mut operations2 = CommitOperations::new(&git_repo)?;
+        let operations2 = CommitOperations::new(&git_repo)?;
 
         // Operations should be isolated
         assert_eq!(operations1.operation_history.len(), 0);

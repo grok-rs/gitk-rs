@@ -14,7 +14,7 @@ use crate::git::tags::{
 use crate::git::{ErrorReporter, GitRepository, InputSanitizer, InputValidator};
 use anyhow::Result;
 use git2::{BranchType as Git2BranchType, Oid, Repository};
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 /// Comprehensive Git operations manager for advanced repository manipulation
 pub struct GitOperations {
@@ -436,7 +436,7 @@ impl GitOperations {
     }
 
     /// Simple checkout implementation without complex merge checks
-    fn checkout_branch_simple(&mut self, branch_name: &str) -> Result<()> {
+    fn checkout_branch_simple(&self, branch_name: &str) -> Result<()> {
         let branch = self.repo.find_branch(branch_name, Git2BranchType::Local)?;
         let target_oid = branch
             .get()
@@ -956,7 +956,7 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
+        let _repo = Repository::open(&repo_path)?;
         let git_repo = GitRepository::discover(&repo_path)?;
         let mut operations = GitOperations::new(&git_repo)?;
 

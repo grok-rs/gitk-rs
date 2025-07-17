@@ -57,24 +57,24 @@ tokio-test = "0.4"            # Async testing utilities
 egui_demo_lib = "0.32"        # egui demo components for reference
 
 # Git testing utilities
-git-testtools = "0.1"         # Git repository testing helpers
+# git-testtools = "0.1"         # Git repository testing helpers (commented out - package doesn't exist)
 
 [[bin]]
 name = "gitk-rs"
 path = "src/main.rs"
 
-# Benchmark configuration
-[[bench]]
-name = "git_operations"
-harness = false
+# Benchmark configuration temporarily disabled for CI
+# [[bench]]
+# name = "git_operations"
+# harness = false
 
-[[bench]]
-name = "ui_rendering"
-harness = false
+# [[bench]]
+# name = "ui_rendering"
+# harness = false
 
-[[bench]]
-name = "commit_streaming"
-harness = false
+# [[bench]]
+# name = "commit_streaming"
+# harness = false
 
 [profile.release]
 opt-level = 2

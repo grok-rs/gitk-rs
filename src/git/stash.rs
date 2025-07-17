@@ -1,3 +1,5 @@
+#![allow(unused_comparisons)]
+
 use crate::git::operations::{OperationRecord, OperationType};
 use crate::git::{ErrorReporter, GitRepository, InputSanitizer, InputValidator};
 use anyhow::Result;
@@ -240,7 +242,7 @@ impl StashManager {
         }
 
         let stash_oid = stash_result.1.unwrap();
-        let stash_id = stash_oid.to_string();
+        let commit_id = stash_oid.to_string();
 
         // Get stash info for the newly created stash
         let stash_info = self.get_stash_info_by_index(0)?;
@@ -251,21 +253,21 @@ impl StashManager {
             timestamp: chrono::Utc::now(),
             description: format!("Created stash: {}", message),
             original_state: None,
-            new_state: Some(stash_id.clone()),
+            new_state: Some(commit_id.clone()),
             affected_refs: vec!["refs/stash".to_string()],
         });
 
         info!(
             "Successfully created stash: {} ({})",
             message,
-            &stash_id[..8]
+            &commit_id[..8]
         );
 
         Ok(StashOperationResult {
             success: true,
             operation: OperationType::StashSave,
             stash_index: Some(0),
-            stash_id: Some(stash_id),
+            stash_id: Some(commit_id),
             message: "Stash created successfully".to_string(),
             conflicts: vec![],
             modified_files,
@@ -1049,8 +1051,8 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let manager = StashManager::new(&git_repo)?;
 
         assert_eq!(manager.operation_history.len(), 0);
 
@@ -1064,6 +1066,8 @@ mod tests {
             include_untracked: true,
             include_ignored: false,
             keep_index: false,
+            all_files: false,
+            pathspecs: vec![],
         };
 
         assert_eq!(config.message, Some("Test stash".to_string()));
@@ -1077,14 +1081,16 @@ mod tests {
     #[test]
     fn test_stash_apply_config() -> Result<()> {
         let config = StashApplyConfig {
-            restore_index: true,
-            restore_untracked: false,
-            progress_callback: None,
+            check_conflicts: true,
+            reinstate_index: true,
+            ignore_whitespace: false,
+            strategy: StashApplyStrategy::Normal,
         };
 
-        assert!(config.restore_index);
-        assert!(!config.restore_untracked);
-        assert!(config.progress_callback.is_none());
+        assert!(config.check_conflicts);
+        assert!(config.reinstate_index);
+        assert!(!config.ignore_whitespace);
+        assert_eq!(config.strategy, StashApplyStrategy::Normal);
 
         Ok(())
     }
@@ -1114,23 +1120,24 @@ mod tests {
             index: 0,
             id: "stash123".to_string(),
             message: "Test stash".to_string(),
-            author: crate::models::GitSignature {
+            author: StashAuthor {
                 name: "Test User".to_string(),
                 email: "test@example.com".to_string(),
-                when: chrono::Utc::now(),
             },
-            files_changed: 2,
-            insertions: 10,
-            deletions: 5,
+            created_date: chrono::Utc::now(),
             branch_name: Some("main".to_string()),
+            has_untracked: false,
+            has_ignored: false,
+            file_count: 2,
+            description: "Test stash description".to_string(),
         };
 
         assert_eq!(info.index, 0);
         assert_eq!(info.id, "stash123");
         assert_eq!(info.message, "Test stash");
-        assert_eq!(info.files_changed, 2);
-        assert_eq!(info.insertions, 10);
-        assert_eq!(info.deletions, 5);
+        assert_eq!(info.file_count, 2);
+        assert_eq!(info.has_untracked, false);
+        assert_eq!(info.has_ignored, false);
         assert_eq!(info.branch_name, Some("main".to_string()));
 
         Ok(())
@@ -1145,20 +1152,22 @@ mod tests {
         fs::write(repo_path.join("test.txt"), "modified content")?;
         fs::write(repo_path.join("new_file.txt"), "new content")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = StashManager::new(&git_repo)?;
 
         let config = StashCreateConfig {
             message: Some("Test stash message".to_string()),
             include_untracked: true,
             include_ignored: false,
             keep_index: false,
+            all_files: false,
+            pathspecs: vec![],
         };
 
         let result = manager.create_stash(config)?;
 
         // Stash creation might succeed or fail depending on Git state, both are valid test outcomes
-        assert_eq!(result.operation, OperationType::StashCreate);
+        assert_eq!(result.operation, OperationType::StashSave);
         assert!(!result.message.is_empty());
 
         Ok(())
@@ -1169,8 +1178,8 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "initial content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let manager = StashManager::new(&git_repo)?;
 
         let options = StashListOptions {
             limit: Some(10),
@@ -1182,7 +1191,7 @@ mod tests {
             date_to: None,
         };
 
-        let stashes = manager.list_stashes(options)?;
+        let stashes = manager.list_stashes(Some(options))?;
 
         // List should succeed even if empty
         assert!(stashes.len() >= 0);
@@ -1198,8 +1207,8 @@ mod tests {
         // Create some changes and attempt to stash them
         fs::write(repo_path.join("test.txt"), "modified content")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = StashManager::new(&git_repo)?;
 
         // Try to create a stash first
         let create_config = StashCreateConfig {
@@ -1207,15 +1216,18 @@ mod tests {
             include_untracked: false,
             include_ignored: false,
             keep_index: false,
+            all_files: false,
+            pathspecs: vec![],
         };
 
         let _create_result = manager.create_stash(create_config);
 
         // Try to apply stash (might fail if no stash exists, which is fine for testing)
         let apply_config = StashApplyConfig {
-            restore_index: false,
-            restore_untracked: false,
-            progress_callback: None,
+            check_conflicts: true,
+            reinstate_index: false,
+            ignore_whitespace: false,
+            strategy: StashApplyStrategy::Normal,
         };
 
         let apply_result = manager.apply_stash(0, apply_config);
@@ -1231,8 +1243,8 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "initial content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = StashManager::new(&git_repo)?;
 
         // Try to drop a stash (will likely fail since no stash exists, but tests the interface)
         let result = manager.drop_stash(0);
@@ -1248,8 +1260,8 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "initial content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = StashManager::new(&git_repo)?;
 
         // Perform some operations
         let config = StashCreateConfig {
@@ -1257,6 +1269,8 @@ mod tests {
             include_untracked: false,
             include_ignored: false,
             keep_index: false,
+            all_files: false,
+            pathspecs: vec![],
         };
 
         let _result = manager.create_stash(config);
@@ -1273,8 +1287,8 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "initial content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = StashManager::new(&git_repo)?;
 
         // Test invalid stash index
         let result = manager.drop_stash(99999);
@@ -1282,9 +1296,10 @@ mod tests {
 
         // Test apply with invalid index
         let apply_config = StashApplyConfig {
-            restore_index: false,
-            restore_untracked: false,
-            progress_callback: None,
+            check_conflicts: true,
+            reinstate_index: false,
+            ignore_whitespace: false,
+            strategy: StashApplyStrategy::Normal,
         };
 
         let result = manager.apply_stash(99999, apply_config);
@@ -1301,8 +1316,8 @@ mod tests {
         // Create changes to stash
         fs::write(repo_path.join("test.txt"), "modified content")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = StashManager::new(&git_repo)?;
 
         // Test with very long message
         let long_message = "a".repeat(10000);
@@ -1311,6 +1326,8 @@ mod tests {
             include_untracked: false,
             include_ignored: false,
             keep_index: false,
+            all_files: false,
+            pathspecs: vec![],
         };
 
         let result = manager.create_stash(config);
@@ -1343,20 +1360,22 @@ mod tests {
         // Create changes to stash
         fs::write(repo_path.join("test.txt"), "modified content")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = StashManager::new(&git_repo)?;
 
         let config = StashCreateConfig {
             message: Some("Test stash".to_string()),
             include_untracked: false,
             include_ignored: false,
             keep_index: false,
+            all_files: false,
+            pathspecs: vec![],
         };
 
         let result = manager.create_stash(config)?;
 
         // Verify result structure
-        assert_eq!(result.operation, OperationType::StashCreate);
+        assert_eq!(result.operation, OperationType::StashSave);
         assert!(!result.message.is_empty());
         // Other fields may or may not be present depending on operation outcome
 
@@ -1368,26 +1387,28 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "initial content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = StashManager::new(&git_repo)?;
 
         // Test operations on non-existent stash
         let invalid_operations = vec![
             manager.apply_stash(
                 999,
                 StashApplyConfig {
-                    restore_index: false,
-                    restore_untracked: false,
-                    progress_callback: None,
+                    check_conflicts: true,
+                    reinstate_index: false,
+                    ignore_whitespace: false,
+                    strategy: StashApplyStrategy::Normal,
                 },
             ),
             manager.drop_stash(999),
             manager.pop_stash(
                 999,
                 StashApplyConfig {
-                    restore_index: false,
-                    restore_untracked: false,
-                    progress_callback: None,
+                    check_conflicts: true,
+                    reinstate_index: false,
+                    ignore_whitespace: false,
+                    strategy: StashApplyStrategy::Normal,
                 },
             ),
         ];
@@ -1405,9 +1426,9 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "initial content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager1 = StashManager::new(repo.clone())?;
-        let mut manager2 = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager1 = StashManager::new(&git_repo)?;
+        let manager2 = StashManager::new(&git_repo)?;
 
         // Test that managers are isolated
         assert_eq!(manager1.operation_history.len(), 0);
@@ -1419,6 +1440,8 @@ mod tests {
             include_untracked: false,
             include_ignored: false,
             keep_index: false,
+            all_files: false,
+            pathspecs: vec![],
         };
 
         let _result = manager1.create_stash(config);

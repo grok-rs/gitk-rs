@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::models::{DiffStatus, GitDiff, GitDiffLine};
 use crate::state::{AppConfig, AppState};
 use eframe::egui;
@@ -54,6 +56,7 @@ enum DiffSide {
 }
 
 #[derive(Debug, Clone)]
+
 struct DiffLine {
     old_line: Option<String>,
     new_line: Option<String>,
@@ -64,6 +67,7 @@ struct DiffLine {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 enum LineChangeType {
     Context,  // Unchanged line
     Added,    // Added line
@@ -72,6 +76,7 @@ enum LineChangeType {
 }
 
 #[derive(Debug, Clone)]
+
 struct WordChange {
     start: usize,
     end: usize,
@@ -79,6 +84,7 @@ struct WordChange {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 enum WordChangeType {
     Added,
     Removed,
@@ -87,6 +93,7 @@ enum WordChangeType {
 
 /// Syntax highlighter for various programming languages
 #[derive(Debug)]
+
 struct SyntaxHighlighter {
     language_patterns: HashMap<String, LanguageHighlighter>,
     cache: HashMap<String, Vec<SyntaxToken>>,
@@ -94,6 +101,7 @@ struct SyntaxHighlighter {
 
 /// Language-specific syntax highlighting patterns
 #[derive(Debug, Clone)]
+
 struct LanguageHighlighter {
     language: ProgrammingLanguage,
     keywords: Vec<String>,
@@ -103,6 +111,7 @@ struct LanguageHighlighter {
 
 /// Supported programming languages
 #[derive(Debug, Clone, PartialEq)]
+
 enum ProgrammingLanguage {
     Rust,
     Python,
@@ -125,6 +134,7 @@ enum ProgrammingLanguage {
 
 /// Syntax highlighting patterns
 #[derive(Debug, Clone)]
+
 struct SyntaxPattern {
     regex: Regex,
     token_type: TokenType,
@@ -133,6 +143,7 @@ struct SyntaxPattern {
 
 /// Types of syntax tokens
 #[derive(Debug, Clone, PartialEq)]
+
 enum TokenType {
     Keyword,
     String,
@@ -150,6 +161,7 @@ enum TokenType {
 
 /// Syntax token with position and type
 #[derive(Debug, Clone)]
+
 struct SyntaxToken {
     start: usize,
     end: usize,
@@ -159,6 +171,7 @@ struct SyntaxToken {
 
 /// Word-level diff engine for detecting fine-grained changes
 #[derive(Debug)]
+
 struct WordDiffEngine {
     word_boundary_regex: Regex,
     cache: HashMap<String, WordDiffResult>,
@@ -166,6 +179,7 @@ struct WordDiffEngine {
 
 /// Result of word-level diff comparison
 #[derive(Debug, Clone)]
+
 struct WordDiffResult {
     old_words: Vec<DiffWord>,
     new_words: Vec<DiffWord>,
@@ -174,6 +188,7 @@ struct WordDiffResult {
 
 /// Individual word in diff with change status
 #[derive(Debug, Clone)]
+
 struct DiffWord {
     text: String,
     start_pos: usize,
@@ -183,6 +198,7 @@ struct DiffWord {
 
 /// Diff operation for word-level changes
 #[derive(Debug, Clone)]
+
 enum DiffOperation {
     Equal(String),
     Insert(String),
@@ -192,12 +208,14 @@ enum DiffOperation {
 
 /// Hierarchical file tree for enhanced navigation
 #[derive(Debug)]
+
 struct FileTree {
     root: FileTreeNode,
 }
 
 /// Node in the file tree
 #[derive(Debug)]
+
 struct FileTreeNode {
     children: HashMap<String, FileTreeNode>,
     file_index: Option<usize>,
@@ -394,7 +412,7 @@ impl DiffViewer {
     }
 
     /// Show unified diff view (traditional single-column diff)
-    fn show_unified_view(&mut self, ui: &mut egui::Ui, diffs: &[GitDiff], _state: &AppState) {
+    fn show_unified_view(&self, ui: &mut egui::Ui, diffs: &[GitDiff], _state: &AppState) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             for (file_idx, diff) in diffs.iter().enumerate() {
                 self.show_file_header(ui, diff, file_idx);
@@ -458,7 +476,7 @@ impl DiffViewer {
             let available_width = ui.available_width();
             let left_width = available_width * self.split_ratio;
             let right_width = available_width - left_width - 10.0; // 10px for separator
-            // Left side (old/removed)
+                                                                   // Left side (old/removed)
             ui.allocate_ui_with_layout(
                 egui::vec2(left_width, ui.available_height()),
                 egui::Layout::top_down(egui::Align::LEFT),
@@ -508,12 +526,7 @@ impl DiffViewer {
     }
 
     /// Show inline changes view with word-level highlighting
-    fn show_inline_changes_view(
-        &mut self,
-        ui: &mut egui::Ui,
-        diffs: &[GitDiff],
-        _state: &AppState,
-    ) {
+    fn show_inline_changes_view(&self, ui: &mut egui::Ui, diffs: &[GitDiff], _state: &AppState) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             for (file_idx, diff) in diffs.iter().enumerate() {
                 self.show_file_header(ui, diff, file_idx);
@@ -654,7 +667,7 @@ impl DiffViewer {
         };
 
         let rect = ui.available_rect_before_wrap();
-        let (rect, response) = ui.allocate_exact_size(
+        let (rect, _response) = ui.allocate_exact_size(
             egui::vec2(rect.width(), self.font_size + 4.0),
             egui::Sense::hover(),
         );
@@ -664,7 +677,7 @@ impl DiffViewer {
             ui.painter().rect_filled(rect, 0.0, final_background);
         }
 
-        ui.allocate_new_ui(egui::UiBuilder::new().max_rect(rect), |ui| {
+        ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
             ui.horizontal(|ui| {
                 // Line numbers
                 if self.show_line_numbers {
@@ -693,15 +706,15 @@ impl DiffViewer {
     }
 
     /// Show side-by-side content for one side
-    fn show_side_by_side_content(&mut self, ui: &mut egui::Ui, diff: &GitDiff, side: DiffSide) {
+    fn show_side_by_side_content(&self, ui: &mut egui::Ui, diff: &GitDiff, side: DiffSide) {
         let scroll_area = egui::ScrollArea::both().id_salt(format!("diff_{:?}", side));
 
         scroll_area.show(ui, |ui| {
             for hunk in &diff.hunks {
                 for line in &hunk.lines {
                     let should_show = match (side, line.origin) {
-                        (DiffSide::Left, '-') | (DiffSide::Left, ' ') => true,
-                        (DiffSide::Right, '+') | (DiffSide::Right, ' ') => true,
+                        (DiffSide::Left, '-' | ' ') => true,
+                        (DiffSide::Right, '+' | ' ') => true,
                         _ => false,
                     };
 
@@ -743,7 +756,7 @@ impl DiffViewer {
             ui.painter().rect_filled(rect, 0.0, background_color);
         }
 
-        ui.allocate_new_ui(egui::UiBuilder::new().max_rect(rect), |ui| {
+        ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
             ui.horizontal(|ui| {
                 // Line number
                 if self.show_line_numbers {
@@ -853,7 +866,7 @@ impl DiffViewer {
             ui.painter().rect_filled(rect, 0.0, background_color);
         }
 
-        ui.allocate_new_ui(egui::UiBuilder::new().max_rect(rect), |ui| {
+        ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
             ui.horizontal(|ui| {
                 // Line numbers
                 if self.show_line_numbers {
@@ -1050,7 +1063,7 @@ impl DiffViewer {
             }
 
             // File selector dropdown
-            egui::ComboBox::from_id_source("file_selector")
+            egui::ComboBox::from_id_salt("file_selector")
                 .selected_text(format!("{}/{}", self.current_file_index + 1, diffs.len()))
                 .show_ui(ui, |ui| {
                     for (idx, diff) in diffs.iter().enumerate() {
@@ -1163,7 +1176,7 @@ impl SyntaxHighlighter {
         let patterns = vec![
             // String literals
             SyntaxPattern::new(r#""([^"\\]|\\.)*""#, TokenType::String, 3),
-            SyntaxPattern::new(r#"'([^'\\]|\\.)*'"#, TokenType::String, 3),
+            SyntaxPattern::new(r"'([^'\\]|\\.)*'", TokenType::String, 3),
             SyntaxPattern::new(r"r#.*?#", TokenType::String, 3),
             // Comments
             SyntaxPattern::new(r"//.*$", TokenType::Comment, 2),
@@ -1219,7 +1232,7 @@ impl SyntaxHighlighter {
         let patterns = vec![
             // String literals
             SyntaxPattern::new(r#""([^"\\]|\\.)*""#, TokenType::String, 3),
-            SyntaxPattern::new(r#"'([^'\\]|\\.)*'"#, TokenType::String, 3),
+            SyntaxPattern::new(r"'([^'\\]|\\.)*'", TokenType::String, 3),
             SyntaxPattern::new(r#"r"[^"]*""#, TokenType::String, 3),
             SyntaxPattern::new(r#"f"([^"\\]|\\.)*""#, TokenType::String, 3),
             SyntaxPattern::new(r#"b"([^"\\]|\\.)*""#, TokenType::String, 3),
@@ -1326,7 +1339,7 @@ impl SyntaxHighlighter {
         let patterns = vec![
             // String literals
             SyntaxPattern::new(r#""([^"\\]|\\.)*""#, TokenType::String, 3),
-            SyntaxPattern::new(r#"'([^'\\]|\\.)*'"#, TokenType::String, 3),
+            SyntaxPattern::new(r"'([^'\\]|\\.)*'", TokenType::String, 3),
             SyntaxPattern::new(r"`[^`]*`", TokenType::String, 3),
             // Comments
             SyntaxPattern::new(r"//.*$", TokenType::Comment, 2),
@@ -1468,7 +1481,7 @@ impl SyntaxHighlighter {
             return cached.clone();
         }
 
-        let language = self.detect_language(filename);
+        let _language = self.detect_language(filename);
         let extension = filename.split('.').last().unwrap_or("").to_lowercase();
 
         let tokens = if let Some(highlighter) = self.language_patterns.get(&extension) {
@@ -1639,7 +1652,7 @@ impl WordDiffEngine {
 
     fn split_into_words(&self, text: &str) -> Vec<(String, usize, usize)> {
         let mut words = Vec::new();
-        let mut current_pos = 0;
+        let _current_pos = 0;
 
         // Split on word boundaries, whitespace, and punctuation
         let word_regex = Regex::new(r"\w+|\s+|[^\w\s]").unwrap();

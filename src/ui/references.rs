@@ -110,20 +110,20 @@ impl ReferencesPanel {
                     response.context_menu(|ui| {
                         if ui.button("Switch to branch").clicked() {
                             branch_to_switch = Some(branch.clone());
-                            ui.close_menu();
+                            ui.close();
                         }
 
                         if ui.button("View commits").clicked() {
                             // This would switch to viewing this branch's commits
                             branch_to_switch = Some(branch.clone());
-                            ui.close_menu();
+                            ui.close();
                         }
 
                         ui.separator();
 
                         if ui.button("Delete branch").clicked() {
                             // TODO: Implement branch deletion with confirmation
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                 });
@@ -151,12 +151,12 @@ impl ReferencesPanel {
                         response.context_menu(|ui| {
                             if ui.button("Create local branch").clicked() {
                                 // TODO: Implement creating local branch from remote
-                                ui.close_menu();
+                                ui.close();
                             }
 
                             if ui.button("View commits").clicked() {
                                 // TODO: Implement viewing remote branch commits
-                                ui.close_menu();
+                                ui.close();
                             }
                         });
                     });
@@ -181,19 +181,19 @@ impl ReferencesPanel {
                     response.context_menu(|ui| {
                         if ui.button("View commit").clicked() {
                             // TODO: Implement jumping to tag commit
-                            ui.close_menu();
+                            ui.close();
                         }
 
                         if ui.button("Create branch from tag").clicked() {
                             // TODO: Implement creating branch from tag
-                            ui.close_menu();
+                            ui.close();
                         }
 
                         ui.separator();
 
                         if ui.button("Delete tag").clicked() {
                             // TODO: Implement tag deletion with confirmation
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                 });

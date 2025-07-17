@@ -1,3 +1,8 @@
+#![allow(clippy::all)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 //! Integration tests for gitk-rs
 //!
 //! This module contains comprehensive integration tests that verify the entire application

@@ -11,7 +11,7 @@ use tracing::{debug, error, warn};
 use std::os::unix::fs::PermissionsExt;
 
 /// Safe Git command execution wrapper
-/// Provides security measures similar to the original gitk's safe_exec functionality
+/// Provides security measures similar to the original gitk's `safe_exec` functionality
 pub struct GitCommandRunner {
     repo_path: PathBuf,
     git_executable: PathBuf,
@@ -52,7 +52,7 @@ impl GitCommandRunner {
 
         // Fallback: try git2 approach
         if let Ok(git_path) = git2::Repository::discover(".") {
-            if let Some(config) = git_path.config().ok() {
+            if let Ok(config) = git_path.config() {
                 if let Ok(git_bin) = config.get_str("core.gitproxy") {
                     let git_path_buf = PathBuf::from(git_bin);
                     if git_path_buf.exists() {
@@ -613,7 +613,7 @@ mod tests {
         let show_ref_result = commands.show_ref(&["--heads"])?;
         assert!(show_ref_result.contains("refs/heads/"));
 
-        let diff_result = commands.diff(&["--name-only", "HEAD~1..HEAD"]);
+        let _diff_result = commands.diff(&["--name-only", "HEAD~1..HEAD"]);
         // This might fail for first commit, which is expected
 
         Ok(())

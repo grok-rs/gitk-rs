@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use std::env;
 use std::path::{Path, PathBuf};
-use tracing::{debug, warn};
+use tracing::debug;
 
 /// Platform-specific security utilities
 /// Implements defense measures against platform-specific attack vectors

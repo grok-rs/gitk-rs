@@ -5,6 +5,7 @@
 cognitive-complexity-threshold = 15
 
 # Documentation lint configuration
+missing-docs-in-crate-items = false
 doc-valid-idents = [
     "GitRepository", "GitCommit", "GitDiff", "GitRef", "GitkApp",
     "TDD", "API", "UI", "GUI", "CLI", "HTTP", "HTTPS", "SSH", "URL",
@@ -19,6 +20,7 @@ type-complexity-threshold = 60
 trivial-copy-size-limit = 64
 
 # Allow certain patterns
+# single-char-lifetime-names = true  # No longer supported
 avoid-breaking-exported-api = true
 
 # Enum variant name configuration
@@ -43,6 +45,9 @@ arithmetic-side-effects-allowed = [
     "u32",
     "i32"
 ]
+
+# Allow certain unsafe operations (if any)
+# allow-unsafe-in-tests = true  # No longer supported
 
 # Standard library configuration
 standard-macro-braces = [

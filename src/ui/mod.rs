@@ -8,7 +8,7 @@ pub mod views;
 
 pub use commit_graph::*;
 pub use diff_viewer::*;
-pub use graph::*;
+// pub use graph::*;
 pub use main_window::*;
 pub use references::*;
 pub use search::*;

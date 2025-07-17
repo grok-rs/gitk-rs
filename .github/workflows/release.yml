@@ -21,7 +21,6 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
       release_version: ${{ steps.get_version.outputs.version }}
     steps:
       - name: Checkout code
@@ -51,12 +50,12 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: gitk-rs ${{ steps.get_version.outputs.version }}
+          name: gitk-rs ${{ steps.get_version.outputs.version }}
           body_path: CHANGELOG.md
           draft: false
           prerelease: ${{ contains(steps.get_version.outputs.version, '-') }}
@@ -135,14 +134,12 @@ jobs:
           fi
 
       - name: Upload binary
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ${{ matrix.name }}
-          asset_name: ${{ matrix.name }}
-          asset_content_type: application/octet-stream
+          tag_name: ${{ needs.create-release.outputs.release_version }}
+          files: ${{ matrix.name }}
 
   # Publish to crates.io
   publish:

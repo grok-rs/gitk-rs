@@ -12,12 +12,12 @@ include-tests = false
 run-types = ["Tests", "Doctests"]
 # Target directory
 target-dir = "target/tarpaulin"
-# Timeout for tests (in seconds)
-timeout = "120s"
+# Timeout for tests (specified via CLI)
+# timeout = 300
 # Follow symbolic links
 follow-exec = true
-# Post test delay
-post-test-delay = "0s"
+# Post test delay (specified via CLI if needed)
+# post-test-delay = 0
 
 [output]
 # Output directory for reports
