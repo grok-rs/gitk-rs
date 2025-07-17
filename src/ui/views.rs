@@ -209,7 +209,14 @@ pub struct CreateViewDialog {
     is_open: bool,
 }
 
+impl Default for CreateViewDialog {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CreateViewDialog {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             filter: ViewFilter::default(),
@@ -223,7 +230,8 @@ impl CreateViewDialog {
         self.is_open = true;
     }
 
-    pub fn is_open(&self) -> bool {
+    #[must_use]
+    pub const fn is_open(&self) -> bool {
         self.is_open
     }
 
@@ -395,7 +403,14 @@ pub struct EditViewDialog {
     is_open: bool,
 }
 
+impl Default for EditViewDialog {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EditViewDialog {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             filter: ViewFilter::default(),
@@ -408,7 +423,8 @@ impl EditViewDialog {
         self.is_open = true;
     }
 
-    pub fn is_open(&self) -> bool {
+    #[must_use]
+    pub const fn is_open(&self) -> bool {
         self.is_open
     }
 

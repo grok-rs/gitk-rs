@@ -1,3 +1,5 @@
+#![allow(unused_comparisons)]
+
 use crate::git::operations::{OperationRecord, OperationType};
 use crate::git::{ErrorReporter, GitRepository, InputSanitizer, InputValidator};
 use anyhow::Result;
@@ -1049,7 +1051,6 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
         let git_repo = GitRepository::discover(&repo_path)?;
         let manager = StashManager::new(&git_repo)?;
 
@@ -1159,6 +1160,8 @@ mod tests {
             include_untracked: true,
             include_ignored: false,
             keep_index: false,
+            all_files: false,
+            pathspecs: vec![],
         };
 
         let result = manager.create_stash(config)?;
@@ -1176,7 +1179,7 @@ mod tests {
         create_test_commit(&repo_path, "test.txt", "initial content", "Initial commit")?;
 
         let git_repo = GitRepository::discover(&repo_path)?;
-        let mut manager = StashManager::new(&git_repo)?;
+        let manager = StashManager::new(&git_repo)?;
 
         let options = StashListOptions {
             limit: Some(10),
@@ -1392,18 +1395,20 @@ mod tests {
             manager.apply_stash(
                 999,
                 StashApplyConfig {
-                    restore_index: false,
-                    restore_untracked: false,
-                    progress_callback: None,
+                    check_conflicts: true,
+                    reinstate_index: false,
+                    ignore_whitespace: false,
+                    strategy: StashApplyStrategy::Normal,
                 },
             ),
             manager.drop_stash(999),
             manager.pop_stash(
                 999,
                 StashApplyConfig {
-                    restore_index: false,
-                    restore_untracked: false,
-                    progress_callback: None,
+                    check_conflicts: true,
+                    reinstate_index: false,
+                    ignore_whitespace: false,
+                    strategy: StashApplyStrategy::Normal,
                 },
             ),
         ];
@@ -1421,9 +1426,9 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "initial content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager1 = StashManager::new(repo.clone())?;
-        let mut manager2 = StashManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager1 = StashManager::new(&git_repo)?;
+        let manager2 = StashManager::new(&git_repo)?;
 
         // Test that managers are isolated
         assert_eq!(manager1.operation_history.len(), 0);

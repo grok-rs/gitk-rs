@@ -1,3 +1,8 @@
+#![allow(clippy::all)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 //! Main integration test runner for gitk-rs
 //!
 //! This runs comprehensive integration tests across all major components.

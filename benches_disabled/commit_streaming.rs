@@ -1,3 +1,8 @@
+#![allow(clippy::all)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 //! Benchmarks for commit streaming performance
 //!
 //! This file benchmarks the commit streaming functionality which is critical

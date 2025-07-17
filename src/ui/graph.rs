@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::models::GitCommit;
 use crate::state::AppState;
 use eframe::egui;
@@ -32,6 +34,7 @@ pub struct CommitGraphRenderer {
 
 /// Complete layout information for the commit graph
 #[derive(Debug, Clone)]
+
 struct GraphLayout {
     /// Commits with their display positions
     commit_positions: HashMap<String, CommitPosition>,
@@ -47,6 +50,7 @@ struct GraphLayout {
 
 /// Position and visual information for a commit
 #[derive(Debug, Clone)]
+
 struct CommitPosition {
     /// Screen coordinates
     pos: egui::Pos2,
@@ -66,6 +70,7 @@ struct CommitPosition {
 
 /// Branch lane with consistent coloring and metadata
 #[derive(Debug, Clone)]
+
 struct BranchLane {
     /// Lane index (0 = leftmost)
     index: usize,
@@ -85,6 +90,7 @@ struct BranchLane {
 
 /// Classification of branch types for visual distinction
 #[derive(Debug, Clone, PartialEq)]
+
 enum BranchType {
     Main,    // Main/master branch
     Feature, // Feature branches
@@ -95,6 +101,7 @@ enum BranchType {
 
 /// Conflict markers for visual indication
 #[derive(Debug, Clone)]
+
 struct ConflictMarker {
     /// Position where conflict occurs
     position: egui::Pos2,
@@ -106,6 +113,7 @@ struct ConflictMarker {
 
 /// Types of conflicts that can be detected
 #[derive(Debug, Clone, PartialEq)]
+
 enum ConflictType {
     MergeConflict, // Traditional merge conflicts
     LaneCollision, // Visual lane collisions
@@ -115,6 +123,7 @@ enum ConflictType {
 
 /// Conflict severity for visual priority
 #[derive(Debug, Clone, PartialEq)]
+
 enum ConflictSeverity {
     Low,
     Medium,
@@ -124,6 +133,7 @@ enum ConflictSeverity {
 
 /// Branch priority for intelligent lane assignment
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
+
 enum BranchPriority {
     VeryHigh = 4, // Main branches
     High = 3,     // Active development branches
@@ -133,6 +143,7 @@ enum BranchPriority {
 
 /// Line connecting commits (parent-child relationship)
 #[derive(Debug, Clone)]
+
 struct ConnectionLine {
     /// Start position
     start: egui::Pos2,
@@ -163,6 +174,7 @@ struct MergeLine {
 
 /// Reference label (branch, tag) display
 #[derive(Debug, Clone)]
+
 struct RefLabel {
     /// Label text
     text: String,
@@ -178,6 +190,7 @@ struct RefLabel {
 
 /// Different types of references
 #[derive(Debug, Clone, PartialEq)]
+
 enum RefType {
     LocalBranch,
     RemoteBranch,
@@ -187,6 +200,7 @@ enum RefType {
 
 /// Line drawing styles
 #[derive(Debug, Clone, PartialEq)]
+
 enum LineStyle {
     Solid,
     Dashed,
@@ -195,6 +209,7 @@ enum LineStyle {
 
 /// Merge visualization styles
 #[derive(Debug, Clone, PartialEq)]
+
 enum MergeStyle {
     Simple,      // Simple merge indicator
     Octopus,     // Multi-parent merge
@@ -756,7 +771,7 @@ impl CommitGraphRenderer {
     /// Handle user interactions with the graph
     fn handle_interactions(
         &mut self,
-        ui: &mut egui::Ui,
+        ui: &egui::Ui,
         layout: &GraphLayout,
     ) -> GraphInteractionResult {
         let response = ui.interact(
@@ -938,7 +953,7 @@ impl CommitGraphRenderer {
         ui: &egui::Ui,
         layout: &GraphLayout,
         commits: &[GitCommit],
-        rect: egui::Rect,
+        _rect: egui::Rect,
     ) {
         let painter = ui.painter();
 
@@ -1146,7 +1161,7 @@ impl CommitGraphRenderer {
             }
             MergeStyle::Highlighted => {
                 // Draw enhanced highlighted merge with glow effect
-                for (i, parent_pos) in merge_line.parent_positions.iter().enumerate() {
+                for (_i, parent_pos) in merge_line.parent_positions.iter().enumerate() {
                     // Draw glow effect (multiple overlapping lines)
                     for glow_radius in [6.0, 4.0, 2.0] {
                         let glow_alpha = (255.0 / glow_radius) as u8;
@@ -1328,23 +1343,26 @@ impl CommitGraphRenderer {
     fn render_hover_tooltip(&self, ui: &egui::Ui, commits: &[GitCommit]) {
         if let Some(ref hovered_commit_id) = self.interaction_state.hovered_commit {
             if let Some(commit) = commits.iter().find(|c| &c.id == hovered_commit_id) {
-                egui::show_tooltip_at_pointer(
-                    ui.ctx(),
-                    ui.layer_id(),
-                    ui.id().with("tooltip"),
-                    |ui| {
-                        ui.vertical(|ui| {
-                            ui.label(format!("Commit: {}", &commit.short_id));
-                            ui.label(format!("Author: {}", commit.author.name));
-                            ui.label(format!(
-                                "Date: {}",
-                                commit.author.when.format("%Y-%m-%d %H:%M")
-                            ));
-                            ui.separator();
-                            ui.label(&commit.message);
-                        });
-                    },
-                );
+                if ui.rect_contains_pointer(ui.available_rect_before_wrap()) {
+                    #[allow(deprecated)]
+                    egui::show_tooltip_at_pointer(
+                        ui.ctx(),
+                        ui.layer_id(),
+                        ui.id().with("tooltip"),
+                        |ui| {
+                            ui.vertical(|ui| {
+                                ui.label(format!("Commit: {}", &commit.short_id));
+                                ui.label(format!("Author: {}", commit.author.name));
+                                ui.label(format!(
+                                    "Date: {}",
+                                    commit.author.when.format("%Y-%m-%d %H:%M")
+                                ));
+                                ui.separator();
+                                ui.label(&commit.message);
+                            });
+                        },
+                    );
+                }
             }
         }
     }
@@ -1417,7 +1435,7 @@ impl CommitGraphRenderer {
     }
 
     /// Classify branch type based on name and commit patterns
-    fn classify_branch_type(&self, branch_name: &str, commits: &[GitCommit]) -> BranchType {
+    fn classify_branch_type(&self, branch_name: &str, _commits: &[GitCommit]) -> BranchType {
         let name_lower = branch_name.to_lowercase();
 
         // Main branch detection
@@ -1520,7 +1538,7 @@ impl CommitGraphRenderer {
         }
 
         // Check for overcrowded lanes
-        for (lane, positions) in lane_occupancy {
+        for (_lane, positions) in lane_occupancy {
             if positions.len() > 20 {
                 // Threshold for overcrowding
                 for pos in positions {

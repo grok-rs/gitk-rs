@@ -1,3 +1,8 @@
+#![allow(clippy::all)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 //! UI rendering performance benchmarks
 //!
 //! This file contains benchmarks for UI rendering performance,

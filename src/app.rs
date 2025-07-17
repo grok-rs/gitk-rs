@@ -11,6 +11,7 @@ pub struct GitkApp {
 }
 
 impl GitkApp {
+    #[must_use]
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         let config = AppConfig::load();
         let state = AppState::new();
@@ -31,7 +32,7 @@ impl GitkApp {
                 let _ = self.config.save();
             }
             Err(e) => {
-                self.state.error_message = Some(format!("Failed to open repository: {}", e));
+                self.state.error_message = Some(format!("Failed to open repository: {e}"));
             }
         }
     }
@@ -101,7 +102,7 @@ impl GitkApp {
                     ui.label(format!("Repository: {}", repo_info.name));
                     ui.separator();
                     if let Some(branch) = &repo_info.head_branch {
-                        ui.label(format!("Branch: {}", branch));
+                        ui.label(format!("Branch: {branch}"));
                     }
                     ui.separator();
                     ui.label(format!("Commits: {}", self.state.commits.len()));
@@ -183,7 +184,14 @@ impl eframe::App for GitkApp {
 
 impl GitkApp {
     fn handle_keyboard_shortcuts(&mut self, ctx: &egui::Context) {
-        // Global shortcuts
+        self.handle_global_shortcuts(ctx);
+        if self.state.has_repository() {
+            self.handle_navigation_shortcuts(ctx);
+            self.handle_view_shortcuts(ctx);
+        }
+    }
+
+    fn handle_global_shortcuts(&mut self, ctx: &egui::Context) {
         if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::O)) {
             // Open repository
             if let Some(path) = rfd::FileDialog::new().pick_folder() {
@@ -207,57 +215,57 @@ impl GitkApp {
             // Focus search
             self.state.focus_search = true;
         }
+    }
 
-        // Navigation shortcuts (only when repository is open)
-        if self.state.has_repository() {
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::ArrowUp)) {
-                self.state.navigate_commits(-1);
-            }
+    fn handle_navigation_shortcuts(&mut self, ctx: &egui::Context) {
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::ArrowUp)) {
+            self.state.navigate_commits(-1);
+        }
 
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown)) {
-                self.state.navigate_commits(1);
-            }
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown)) {
+            self.state.navigate_commits(1);
+        }
 
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::PageUp)) {
-                self.state.navigate_commits(-10);
-            }
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::PageUp)) {
+            self.state.navigate_commits(-10);
+        }
 
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::PageDown)) {
-                self.state.navigate_commits(10);
-            }
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::PageDown)) {
+            self.state.navigate_commits(10);
+        }
 
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Home)) {
-                self.state.navigate_to_first_commit();
-            }
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Home)) {
+            self.state.navigate_to_first_commit();
+        }
 
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::End)) {
-                self.state.navigate_to_last_commit();
-            }
-
-            // View mode shortcuts
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::Num1)) {
-                self.main_window.set_view_mode(crate::ui::ViewMode::Graph);
-            }
-
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::Num2)) {
-                self.main_window.set_view_mode(crate::ui::ViewMode::List);
-            }
-
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::Num3)) {
-                self.main_window.set_view_mode(crate::ui::ViewMode::Tree);
-            }
-
-            // Diff view shortcuts
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::D)) {
-                self.main_window.toggle_diff_view();
-            }
-
-            if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::T)) {
-                self.main_window.toggle_file_tree();
-            }
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::End)) {
+            self.state.navigate_to_last_commit();
         }
     }
 
+    fn handle_view_shortcuts(&mut self, ctx: &egui::Context) {
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::Num1)) {
+            self.main_window.set_view_mode(crate::ui::ViewMode::Graph);
+        }
+
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::Num2)) {
+            self.main_window.set_view_mode(crate::ui::ViewMode::List);
+        }
+
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::Num3)) {
+            self.main_window.set_view_mode(crate::ui::ViewMode::Tree);
+        }
+
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::D)) {
+            self.main_window.toggle_diff_view();
+        }
+
+        if ctx.input_mut(|i| i.consume_key(egui::Modifiers::CTRL, egui::Key::T)) {
+            self.main_window.toggle_file_tree();
+        }
+    }
+
+    #[allow(clippy::unused_self)]
     fn update_window_size(&self, _frame: &eframe::Frame) {
         // Window size tracking would be implemented here
         // For now, we'll rely on the save method being called on app close

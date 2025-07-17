@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::models::{DiffStatus, GitDiff, GitDiffLine};
 use crate::state::{AppConfig, AppState};
 use eframe::egui;
@@ -54,6 +56,7 @@ enum DiffSide {
 }
 
 #[derive(Debug, Clone)]
+
 struct DiffLine {
     old_line: Option<String>,
     new_line: Option<String>,
@@ -64,6 +67,7 @@ struct DiffLine {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 enum LineChangeType {
     Context,  // Unchanged line
     Added,    // Added line
@@ -72,6 +76,7 @@ enum LineChangeType {
 }
 
 #[derive(Debug, Clone)]
+
 struct WordChange {
     start: usize,
     end: usize,
@@ -79,6 +84,7 @@ struct WordChange {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 enum WordChangeType {
     Added,
     Removed,
@@ -87,6 +93,7 @@ enum WordChangeType {
 
 /// Syntax highlighter for various programming languages
 #[derive(Debug)]
+
 struct SyntaxHighlighter {
     language_patterns: HashMap<String, LanguageHighlighter>,
     cache: HashMap<String, Vec<SyntaxToken>>,
@@ -94,6 +101,7 @@ struct SyntaxHighlighter {
 
 /// Language-specific syntax highlighting patterns
 #[derive(Debug, Clone)]
+
 struct LanguageHighlighter {
     language: ProgrammingLanguage,
     keywords: Vec<String>,
@@ -103,6 +111,7 @@ struct LanguageHighlighter {
 
 /// Supported programming languages
 #[derive(Debug, Clone, PartialEq)]
+
 enum ProgrammingLanguage {
     Rust,
     Python,
@@ -125,6 +134,7 @@ enum ProgrammingLanguage {
 
 /// Syntax highlighting patterns
 #[derive(Debug, Clone)]
+
 struct SyntaxPattern {
     regex: Regex,
     token_type: TokenType,
@@ -133,6 +143,7 @@ struct SyntaxPattern {
 
 /// Types of syntax tokens
 #[derive(Debug, Clone, PartialEq)]
+
 enum TokenType {
     Keyword,
     String,
@@ -150,6 +161,7 @@ enum TokenType {
 
 /// Syntax token with position and type
 #[derive(Debug, Clone)]
+
 struct SyntaxToken {
     start: usize,
     end: usize,
@@ -159,6 +171,7 @@ struct SyntaxToken {
 
 /// Word-level diff engine for detecting fine-grained changes
 #[derive(Debug)]
+
 struct WordDiffEngine {
     word_boundary_regex: Regex,
     cache: HashMap<String, WordDiffResult>,
@@ -166,6 +179,7 @@ struct WordDiffEngine {
 
 /// Result of word-level diff comparison
 #[derive(Debug, Clone)]
+
 struct WordDiffResult {
     old_words: Vec<DiffWord>,
     new_words: Vec<DiffWord>,
@@ -174,6 +188,7 @@ struct WordDiffResult {
 
 /// Individual word in diff with change status
 #[derive(Debug, Clone)]
+
 struct DiffWord {
     text: String,
     start_pos: usize,
@@ -183,6 +198,7 @@ struct DiffWord {
 
 /// Diff operation for word-level changes
 #[derive(Debug, Clone)]
+
 enum DiffOperation {
     Equal(String),
     Insert(String),
@@ -192,12 +208,14 @@ enum DiffOperation {
 
 /// Hierarchical file tree for enhanced navigation
 #[derive(Debug)]
+
 struct FileTree {
     root: FileTreeNode,
 }
 
 /// Node in the file tree
 #[derive(Debug)]
+
 struct FileTreeNode {
     children: HashMap<String, FileTreeNode>,
     file_index: Option<usize>,

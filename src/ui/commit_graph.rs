@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::models::GitCommit;
 use crate::state::{AppConfig, AppState};
 use crate::ui::graph::CommitGraphRenderer;

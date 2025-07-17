@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::state::AppState;
 use eframe::egui;
 

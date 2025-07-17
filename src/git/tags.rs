@@ -840,8 +840,8 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let manager = TagManager::new(&git_repo)?;
 
         assert_eq!(manager.operation_history.len(), 0);
 
@@ -851,17 +851,17 @@ mod tests {
     #[test]
     fn test_tag_create_config() -> Result<()> {
         let config = TagCreateConfig {
-            name: "v1.0.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Version 1.0.0".to_string()),
-            target: None,
-            annotated: true,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        assert_eq!(config.name, "v1.0.0");
+        assert_eq!(config.tag_type, TagType::Annotated);
         assert_eq!(config.message, Some("Version 1.0.0".to_string()));
-        assert!(config.annotated);
-        assert!(!config.force);
+        assert!(!config.force_overwrite);
+        assert!(!config.sign_tag);
 
         Ok(())
     }
@@ -873,7 +873,7 @@ mod tests {
             include_lightweight: true,
             include_annotated: true,
             limit: Some(10),
-            sort_by: TagSortBy::Date,
+            sort_by: TagSortBy::CreationDate,
             sort_order: SortOrder::Descending,
         };
 
@@ -881,7 +881,7 @@ mod tests {
         assert!(options.include_lightweight);
         assert!(options.include_annotated);
         assert_eq!(options.limit, Some(10));
-        assert_eq!(options.sort_by, TagSortBy::Date);
+        assert_eq!(options.sort_by, TagSortBy::CreationDate);
         assert_eq!(options.sort_order, SortOrder::Descending);
 
         Ok(())
@@ -895,12 +895,12 @@ mod tests {
             target_type: ObjectType::Commit,
             tag_type: TagType::Annotated,
             message: Some("Release v1.0.0".to_string()),
-            signature: Some(TagSignature {
+            tagger: Some(TagSignature {
                 name: "Tagger".to_string(),
                 email: "tagger@example.com".to_string(),
                 when: chrono::Utc::now(),
             }),
-            refs: vec!["refs/tags/v1.0.0".to_string()],
+            created_date: Some(chrono::Utc::now()),
         };
 
         assert_eq!(info.name, "v1.0.0");
@@ -908,8 +908,8 @@ mod tests {
         assert_eq!(info.target_type, ObjectType::Commit);
         assert_eq!(info.tag_type, TagType::Annotated);
         assert_eq!(info.message, Some("Release v1.0.0".to_string()));
-        assert!(info.signature.is_some());
-        assert_eq!(info.refs.len(), 1);
+        assert!(info.tagger.is_some());
+        assert!(info.created_date.is_some());
 
         Ok(())
     }
@@ -944,11 +944,11 @@ mod tests {
     #[test]
     fn test_tag_sort_options() -> Result<()> {
         let sort_by_name = TagSortBy::Name;
-        let sort_by_date = TagSortBy::Date;
+        let sort_by_date = TagSortBy::CreationDate;
         let sort_by_version = TagSortBy::Version;
 
         assert_eq!(sort_by_name, TagSortBy::Name);
-        assert_eq!(sort_by_date, TagSortBy::Date);
+        assert_eq!(sort_by_date, TagSortBy::CreationDate);
         assert_eq!(sort_by_version, TagSortBy::Version);
 
         let ascending = SortOrder::Ascending;
@@ -966,18 +966,18 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         let commit_sha = create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         let config = TagCreateConfig {
-            name: "v1.0.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Version 1.0.0".to_string()),
-            target: Some(commit_sha),
-            annotated: true,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        let result = manager.create_tag(config)?;
+        let result = manager.create_tag("v1.0.0", &commit_sha, config)?;
 
         assert!(result.success);
         assert_eq!(result.operation, OperationType::TagCreate);
@@ -990,21 +990,21 @@ mod tests {
     #[test]
     fn test_tag_list_operation() -> Result<()> {
         let (_temp_dir, repo_path) = create_test_repo()?;
-        create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
+        let commit_sha = create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         // Create a tag first
         let config = TagCreateConfig {
-            name: "v1.0.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Version 1.0.0".to_string()),
-            target: None, // Use HEAD
-            annotated: true,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        manager.create_tag(config)?;
+        manager.create_tag("v1.0.0", &commit_sha, config)?;
 
         // List tags
         let filter_options = TagFilterOptions {
@@ -1016,7 +1016,7 @@ mod tests {
             sort_order: SortOrder::Ascending,
         };
 
-        let tags = manager.list_tags(filter_options)?;
+        let tags = manager.list_tags(Some(filter_options))?;
 
         assert!(tags.len() > 0);
         assert!(tags.iter().any(|t| t.name == "v1.0.0"));
@@ -1027,24 +1027,24 @@ mod tests {
     #[test]
     fn test_tag_delete_operation() -> Result<()> {
         let (_temp_dir, repo_path) = create_test_repo()?;
-        create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
+        let commit_sha = create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         // Create a tag first
         let config = TagCreateConfig {
-            name: "to-delete".to_string(),
+            tag_type: TagType::Lightweight,
             message: None,
-            target: None,
-            annotated: false,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        manager.create_tag(config)?;
+        manager.create_tag("to-delete", &commit_sha, config)?;
 
         // Delete the tag
-        let result = manager.delete_tag("to-delete")?;
+        let result = manager.delete_tag("to-delete", false)?;
 
         assert!(result.success);
         assert_eq!(result.operation, OperationType::TagDelete);
@@ -1058,8 +1058,8 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         // Test invalid tag names
         let invalid_names = vec![
@@ -1072,14 +1072,14 @@ mod tests {
 
         for invalid_name in invalid_names {
             let config = TagCreateConfig {
-                name: invalid_name.to_string(),
+                tag_type: TagType::Lightweight,
                 message: None,
-                target: None,
-                annotated: false,
-                force: false,
+                force_overwrite: false,
+                sign_tag: false,
+                tagger: None,
             };
 
-            let result = manager.create_tag(config);
+            let result = manager.create_tag(invalid_name, "HEAD", config);
             assert!(
                 result.is_err(),
                 "Should reject invalid tag name: {}",
@@ -1095,28 +1095,29 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         // Perform tag operations
         let config1 = TagCreateConfig {
-            name: "v1.0.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Version 1.0.0".to_string()),
-            target: None,
-            annotated: true,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
         let config2 = TagCreateConfig {
-            name: "v1.1.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Version 1.1.0".to_string()),
-            target: None,
-            annotated: true,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        manager.create_tag(config1)?;
-        manager.create_tag(config2)?;
+        let commit_sha = "HEAD";
+        manager.create_tag("v1.0.0", commit_sha, config1)?;
+        manager.create_tag("v1.1.0", commit_sha, config2)?;
 
         // Check operation history
         let history = manager.get_operation_history();
@@ -1133,23 +1134,23 @@ mod tests {
     #[test]
     fn test_tag_filter_by_pattern() -> Result<()> {
         let (_temp_dir, repo_path) = create_test_repo()?;
-        create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
+        let commit_sha = create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         // Create multiple tags
         let tags_to_create = vec!["v1.0.0", "v1.1.0", "release-1.0", "beta-1"];
 
         for tag_name in tags_to_create {
             let config = TagCreateConfig {
-                name: tag_name.to_string(),
+                tag_type: TagType::Lightweight,
                 message: None,
-                target: None,
-                annotated: false,
-                force: false,
+                force_overwrite: false,
+                sign_tag: false,
+                tagger: None,
             };
-            manager.create_tag(config)?;
+            manager.create_tag(tag_name, &commit_sha, config)?;
         }
 
         // Filter tags with pattern
@@ -1162,7 +1163,7 @@ mod tests {
             sort_order: SortOrder::Ascending,
         };
 
-        let filtered_tags = manager.list_tags(filter_options)?;
+        let filtered_tags = manager.list_tags(Some(filter_options))?;
 
         // Should only include tags starting with 'v'
         for tag in &filtered_tags {
@@ -1181,42 +1182,43 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         // Create initial tag
         let config1 = TagCreateConfig {
-            name: "v1.0.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Initial version".to_string()),
-            target: None,
-            annotated: true,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        manager.create_tag(config1)?;
+        let commit_sha = "HEAD";
+        manager.create_tag("v1.0.0", commit_sha, config1)?;
 
         // Try to create same tag without force (should fail)
         let config2 = TagCreateConfig {
-            name: "v1.0.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Updated version".to_string()),
-            target: None,
-            annotated: true,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        let result = manager.create_tag(config2);
+        let result = manager.create_tag("v1.0.0", commit_sha, config2);
         assert!(result.is_err());
 
         // Create same tag with force (should succeed)
         let config3 = TagCreateConfig {
-            name: "v1.0.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Force updated version".to_string()),
-            target: None,
-            annotated: true,
-            force: true,
+            force_overwrite: true,
+            sign_tag: false,
+            tagger: None,
         };
 
-        let result = manager.create_tag(config3)?;
+        let result = manager.create_tag("v1.0.0", commit_sha, config3)?;
         assert!(result.success);
 
         Ok(())
@@ -1241,18 +1243,18 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         let config = TagCreateConfig {
-            name: "v1.0.0".to_string(),
+            tag_type: TagType::Annotated,
             message: Some("Version 1.0.0".to_string()),
-            target: None,
-            annotated: true,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        let result = manager.create_tag(config)?;
+        let result = manager.create_tag("v1.0.0", "HEAD", config)?;
 
         // Verify result structure
         assert!(result.success);
@@ -1270,23 +1272,23 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager = TagManager::new(&git_repo)?;
 
         // Test delete non-existent tag
-        let result = manager.delete_tag("non-existent-tag");
+        let result = manager.delete_tag("non-existent-tag", false);
         assert!(result.is_err());
 
         // Test create tag with invalid target
         let config = TagCreateConfig {
-            name: "invalid-target".to_string(),
+            tag_type: TagType::Lightweight,
             message: None,
-            target: Some("invalid-sha".to_string()),
-            annotated: false,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        let result = manager.create_tag(config);
+        let result = manager.create_tag("invalid-target", "invalid-sha", config);
         assert!(result.is_err());
 
         Ok(())
@@ -1297,9 +1299,9 @@ mod tests {
         let (_temp_dir, repo_path) = create_test_repo()?;
         create_test_commit(&repo_path, "test.txt", "content", "Initial commit")?;
 
-        let repo = Repository::open(&repo_path)?;
-        let mut manager1 = TagManager::new(repo.clone())?;
-        let mut manager2 = TagManager::new(repo)?;
+        let git_repo = GitRepository::discover(&repo_path)?;
+        let mut manager1 = TagManager::new(&git_repo)?;
+        let manager2 = TagManager::new(&git_repo)?;
 
         // Test that managers are isolated
         assert_eq!(manager1.operation_history.len(), 0);
@@ -1307,14 +1309,14 @@ mod tests {
 
         // Operations on one manager shouldn't affect the other's history
         let config = TagCreateConfig {
-            name: "test-tag".to_string(),
+            tag_type: TagType::Lightweight,
             message: None,
-            target: None,
-            annotated: false,
-            force: false,
+            force_overwrite: false,
+            sign_tag: false,
+            tagger: None,
         };
 
-        manager1.create_tag(config)?;
+        manager1.create_tag("test-tag", "HEAD", config)?;
 
         assert!(manager1.operation_history.len() > 0);
         assert_eq!(manager2.operation_history.len(), 0);

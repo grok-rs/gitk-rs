@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use anyhow::Result;
 use std::fmt;
 use thiserror::Error;
@@ -438,6 +440,7 @@ impl ErrorRecovery {
     }
 
     /// Check if error requires immediate abort
+    #[must_use]
     pub fn should_abort(error: &GitError) -> bool {
         match error.severity() {
             ErrorSeverity::Critical => true,
@@ -447,6 +450,7 @@ impl ErrorRecovery {
     }
 
     /// Get user-friendly error message
+    #[must_use]
     pub fn user_friendly_message(error: &GitError) -> String {
         match error {
             GitError::Security { .. } => {
@@ -492,10 +496,10 @@ impl ErrorRecovery {
                 )
             }
             GitError::Git2(e) => {
-                format!("Git error: {}", e)
+                format!("Git error: {e}")
             }
             GitError::Io(e) => {
-                format!("File operation failed: {}", e)
+                format!("File operation failed: {e}")
             }
             _ => "An unexpected error occurred. Please try again.".to_string(),
         }
@@ -525,6 +529,7 @@ impl ErrorReporter {
     }
 
     /// Create error report for debugging
+    #[must_use]
     pub fn create_error_report(error: &GitError, context: &str) -> String {
         format!(
             "Error Report\n\

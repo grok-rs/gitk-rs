@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::state::{AppConfig, AppState};
 use crate::ui::{CommitGraph, DiffViewer, ReferencesPanel, SearchPanel, ViewsPanel};
 use eframe::egui;
@@ -293,7 +295,7 @@ impl MainWindow {
     }
 
     /// Show toolbar with common actions
-    fn show_toolbar(&mut self, ui: &mut egui::Ui, state: &mut AppState, config: &AppConfig) {
+    fn show_toolbar(&mut self, ui: &mut egui::Ui, state: &mut AppState, _config: &AppConfig) {
         ui.horizontal(|ui| {
             // File operations
             if ui.button("📁").on_hover_text("Open Repository").clicked() {

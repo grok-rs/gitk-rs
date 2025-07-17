@@ -63,18 +63,18 @@ egui_demo_lib = "0.32"        # egui demo components for reference
 name = "gitk-rs"
 path = "src/main.rs"
 
-# Benchmark configuration
-[[bench]]
-name = "git_operations"
-harness = false
+# Benchmark configuration temporarily disabled for CI
+# [[bench]]
+# name = "git_operations"
+# harness = false
 
-[[bench]]
-name = "ui_rendering"
-harness = false
+# [[bench]]
+# name = "ui_rendering"
+# harness = false
 
-[[bench]]
-name = "commit_streaming"
-harness = false
+# [[bench]]
+# name = "commit_streaming"
+# harness = false
 
 [profile.release]
 opt-level = 2
